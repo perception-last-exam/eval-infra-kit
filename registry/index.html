@@ -1,0 +1,1089 @@
+<title>Round 2 Data Collection</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* App shell: collapsible tinted sidebar (search, filter, scene list) | main canvas (tabs, scene detail, tables). Quiet neutrals, one cobalt accent. */
+:root {
+  --bg: #fbfbfc;
+  --side: #eef1f5;
+  --panel: #ffffff;
+  --panel-2: #f1f3f6;
+  --ink: #14171c;
+  --ink-2: #4a525d;
+  --ink-3: #7a838f;
+  --line: #e4e7eb;
+  --line-2: #d3d8df;
+  --accent: #2f5bd3;
+  --accent-soft: #e9eefc;
+  --ok: #18794e;
+  --ok-soft: #e2f3ea;
+  --warn: #9a5a06;
+  --warn-soft: #fbf0de;
+  --chip: #eceff3;
+  --shadow-1: 0 1px 2px rgba(20, 23, 28, .06);
+  --shadow-2: 0 1px 2px rgba(20, 23, 28, .05), 0 10px 28px rgba(20, 23, 28, .10);
+  --sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px;
+  --r-sm: 7px;
+  --side-w: 300px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1013; --side: #171b21; --panel: #15181c; --panel-2: #1c2026; --ink: #e7e9ec; --ink-2: #aab2bc; --ink-3: #7d8692;
+    --line: #252a30; --line-2: #333a43; --accent: #8fb0ff; --accent-soft: #1b2640; --ok: #5cc995; --ok-soft: #13281e; --warn: #f0b467; --warn-soft: #2d2213; --chip: #232830;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .35); --shadow-2: 0 1px 2px rgba(0, 0, 0, .35), 0 12px 30px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1013; --side: #171b21; --panel: #15181c; --panel-2: #1c2026; --ink: #e7e9ec; --ink-2: #aab2bc; --ink-3: #7d8692;
+  --line: #252a30; --line-2: #333a43; --accent: #8fb0ff; --accent-soft: #1b2640; --ok: #5cc995; --ok-soft: #13281e; --warn: #f0b467; --warn-soft: #2d2213; --chip: #232830;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .35); --shadow-2: 0 1px 2px rgba(0, 0, 0, .35), 0 12px 30px rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
+html { -webkit-text-size-adjust: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.mono { font-family: var(--mono); font-size: .9em; letter-spacing: -.01em; }
+.num { font-variant-numeric: tabular-nums; }
+.faint { color: var(--ink-3); }
+svg.i { width: 15px; height: 15px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- shell ---------- */
+.app { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; transition: grid-template-columns .26s var(--ease); }
+.app.collapsed { grid-template-columns: 0px minmax(0, 1fr); }
+.side { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; background: var(--side); border-right: 1px solid var(--line-2); z-index: 7; }
+.side-in { width: var(--side-w); height: 100%; display: flex; flex-direction: column; padding-top: max(14px, env(safe-area-inset-top, 0px)); padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: 14px; box-sizing: border-box; transition: opacity .2s var(--ease); }
+.app.collapsed .side-in { opacity: 0; pointer-events: none; }
+.app.collapsed .side { border-right-color: transparent; }
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 2px 14px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mark { width: 28px; height: 28px; border-radius: 7px; background: var(--ink); color: var(--panel); display: grid; place-items: center; font-family: var(--mono); font-size: 10.5px; font-weight: 500; flex: none; }
+.brand .b1 { font-weight: 600; font-size: 14.5px; letter-spacing: -.01em; line-height: 1.2; }
+.brand .b2 { color: var(--ink-3); font-size: 12px; line-height: 1.2; }
+.side-tools { display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid var(--line-2); }
+.search { position: relative; display: flex; align-items: center; }
+.search svg { position: absolute; left: 9px; color: var(--ink-3); pointer-events: none; }
+.search input { width: 100%; padding: 7px 32px 7px 30px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--panel); transition: border-color .15s, box-shadow .15s; }
+.search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search kbd { position: absolute; right: 8px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--line-2); border-radius: 4px; padding: 0 5px; background: var(--panel-2); }
+.sel { width: 100%; padding: 7px 28px 7px 10px; border: 1px solid var(--line-2); border-radius: 8px; background-color: var(--panel); -webkit-appearance: none; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%), linear-gradient(135deg, var(--ink-3) 50%, transparent 50%); background-position: calc(100% - 14px) 52%, calc(100% - 10px) 52%; background-size: 4px 4px; background-repeat: no-repeat; }
+.side-label { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 4px 6px; font-size: 11.5px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+.rail { flex: 1 1 auto; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; margin: 0 -6px; padding: 2px 6px 8px; scrollbar-width: thin; }
+.item { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 11px; align-items: center; padding: 6px 8px 6px 6px; border-radius: var(--r-sm); cursor: pointer; border: 1px solid transparent; background: transparent; text-align: left; width: 100%; transition: background .15s var(--ease), border-color .15s var(--ease); }
+.item:hover { background: color-mix(in srgb, var(--panel) 65%, transparent); }
+.item[aria-selected="true"] { background: var(--panel); border-color: var(--line-2); box-shadow: var(--shadow-1); }
+.item[aria-selected="true"] .item-id { color: var(--accent); }
+.item .th, .item .th-ph { width: 46px; height: 46px; border-radius: 6px; object-fit: cover; background: var(--panel-2); display: block; }
+.item-id { display: block; font-family: var(--mono); font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+.item-meta svg.i { width: 12px; height: 12px; }
+.rail-empty { padding: 14px 6px; color: var(--ink-3); font-size: 13px; }
+.side-foot { border-top: 1px solid var(--line-2); padding: 10px 4px 2px; font-size: 11.5px; color: var(--ink-3); }
+.scrim { position: fixed; inset: 0; background: rgba(8, 10, 13, .38); z-index: 6; }
+
+.main { min-width: 0; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.app:not(.collapsed) .main { padding-left: 28px; }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-block: 14px 12px; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--panel-2); border-radius: 9px; border: 1px solid var(--line); }
+.seg a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 7px; color: var(--ink-2); font-weight: 500; font-size: 13px; white-space: nowrap; text-decoration: none; transition: background .15s var(--ease), color .15s var(--ease); }
+.seg a:hover { color: var(--ink); }
+.seg a[aria-current="page"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow-1); }
+.seg .ct { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.top .push { margin-left: auto; }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--ink); transition: background .15s, border-color .15s; white-space: nowrap; }
+.btn:hover { background: var(--panel-2); border-color: var(--line-2); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: color-mix(in srgb, var(--panel-2) 80%, transparent); }
+.btn.icon { padding: 6px; }
+.menu { position: relative; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu .pop { position: absolute; right: 0; top: calc(100% + 6px); min-width: 220px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-sm); box-shadow: var(--shadow-2); padding: 4px; z-index: 8; display: flex; flex-direction: column; }
+.menu .pop button { text-align: left; padding: 8px 10px; border: 0; background: transparent; border-radius: 5px; cursor: pointer; font-size: 13px; }
+.menu .pop button:hover { background: var(--panel-2); }
+.menu .pop .hint { font-size: 11.5px; color: var(--ink-3); display: block; }
+.banner { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 7px 12px; margin-bottom: 14px; border-radius: var(--r-sm); background: var(--panel); border: 1px dashed var(--line-2); color: var(--ink-2); font-size: 12.5px; }
+.banner b { color: var(--ink); font-weight: 600; }
+.content { padding-bottom: 48px; max-width: 1240px; }
+
+@media (max-width: 900px) {
+  .app, .app.collapsed { grid-template-columns: minmax(0, 1fr); }
+  .side { position: fixed; left: 0; top: 0; bottom: 0; width: min(var(--side-w), 86vw); transform: translateX(-102%); transition: transform .26s var(--ease); box-shadow: var(--shadow-2); }
+  .side-in { width: 100%; }
+  .app.collapsed .side-in { opacity: 1; pointer-events: auto; }
+  .app.drawer .side { transform: none; }
+  .app:not(.collapsed) .main, .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+}
+
+/* ---------- scene detail ---------- */
+.detail { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; animation-timing-function: var(--ease); }
+.side { view-transition-name: side; }
+.detail.enter { animation: rise .22s var(--ease); }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.d-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; }
+.d-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.d-title h2 { margin: 0; font-family: var(--mono); font-size: 22px; font-weight: 500; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.d-meta { color: var(--ink-2); font-size: 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.d-meta .sep { color: var(--line-2); }
+.d-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; background: var(--chip); color: var(--ink-2); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.tag.accent { background: var(--accent-soft); color: var(--accent); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-1); }
+
+/* Video works at any aspect ratio: tall and square clips sit beside the facts, wide clips span the card. */
+.hero { display: grid; grid-template-columns: auto minmax(0, 1fr); overflow: hidden; }
+.hero.wide { grid-template-columns: minmax(0, 1fr); }
+.media { background: #0b0c0e; display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: 100%; }
+.media video, .media img { display: block; background: #0b0c0e; object-fit: contain; max-width: 100%; }
+.hero:not(.wide) .media video, .hero:not(.wide) .media img { height: min(64vh, 640px); width: auto; }
+.hero.square .media video, .hero.square .media img { height: min(48vh, 440px); }
+.hero.wide .media { align-items: stretch; }
+.hero.wide .media video, .hero.wide .media img { width: 100%; height: auto; max-height: 62vh; }
+.fbar { align-self: stretch; display: flex; align-items: center; gap: 4px; padding: 8px 10px; background: #111317; color: #c9ced6; font-family: var(--mono); font-size: 12px; }
+.fbar button { display: inline-grid; place-items: center; width: 28px; height: 26px; border-radius: 6px; border: 1px solid #2a2f36; background: #181b20; color: #e6e8eb; cursor: pointer; }
+.fbar button:hover { background: #22262c; }
+.fbar .fr { margin-left: 6px; color: #fff; white-space: nowrap; }
+.fbar .ft { margin-left: auto; color: #8d95a0; white-space: nowrap; padding-left: 8px; }
+.no-media { width: 100%; min-height: 220px; display: grid; place-items: center; color: #8d95a0; font-size: 13px; padding: 20px; }
+@media (max-width: 760px) {
+  .hero, .hero.wide { grid-template-columns: minmax(0, 1fr); }
+  .hero .media { align-items: stretch; }
+  .hero:not(.wide) .media video, .hero:not(.wide) .media img, .hero.square .media video { width: 100%; height: auto; max-height: 60vh; }
+}
+.facts { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.fgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin: 0; }
+.fgrid div { min-width: 0; }
+.fgrid dt { font-size: 11.5px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.fgrid dd { margin: 0; font-size: 14.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.disc { border-top: 1px solid var(--line); padding-top: 10px; }
+.disc > summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13px; font-weight: 500; }
+.disc > summary::-webkit-details-marker { display: none; }
+.disc > summary svg { transition: transform .2s var(--ease); }
+.disc[open] > summary svg { transform: rotate(90deg); }
+.kv { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+.kv th { text-align: left; vertical-align: top; font-family: var(--mono); font-weight: 400; font-size: 12px; color: var(--ink-3); padding: 5px 16px 5px 0; width: 1%; white-space: nowrap; }
+.kv td { padding: 5px 0; vertical-align: top; overflow-wrap: anywhere; }
+.kv tr + tr > * { border-top: 1px solid var(--line); }
+pre { margin: 10px 0 0; padding: 12px; border-radius: var(--r-sm); background: var(--panel-2); overflow: auto; max-height: 420px; font-family: var(--mono); font-size: 12px; line-height: 1.45; }
+
+/* ---------- queries: one card per query; the three core fields always visible ---------- */
+.sec-head { display: flex; align-items: baseline; gap: 8px; margin: 8px 0 10px; }
+.sec-head h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.qlist { display: flex; flex-direction: column; gap: 12px; container-type: inline-size; }
+.qc { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-1); transition: border-color .2s var(--ease), box-shadow .3s var(--ease); }
+.qc:hover { border-color: var(--line-2); }
+.qc.open { border-color: var(--line-2); box-shadow: var(--shadow-2); }
+.qc-main { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+.qc-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 28px; align-items: start; }
+.qc-kicker { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; font-size: 12px; color: var(--ink-3); }
+.qc-n { font-family: var(--mono); font-weight: 500; color: var(--accent); }
+.qc-def { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.4; letter-spacing: -.005em; }
+.qc-def::first-letter, .core .link dd::first-letter, .cap::first-letter { text-transform: uppercase; }
+.cap { display: block; }
+.qc-sub { margin-top: 4px; font-size: 13px; color: var(--ink-2); }
+.qc-gt { text-align: right; white-space: nowrap; }
+.qc-gt .lab { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+.qc-gt .v { font-family: var(--mono); font-size: 20px; font-weight: 500; letter-spacing: -.03em; line-height: 1.3; }
+.qc-gt .u { font-family: var(--sans); font-size: 12.5px; letter-spacing: 0; color: var(--ink-3); }
+.core { margin: 0; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.2fr) minmax(0, 2fr); gap: 14px 26px; padding: 13px 15px; border-radius: var(--r-sm); background: var(--panel-2); }
+.core > div { min-width: 0; }
+.core dt { margin-bottom: 6px; font-size: 11px; font-weight: 500; line-height: 1.35; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+.core dd { margin: 0; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.miss { color: var(--warn); }
+.dom { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; }
+.dom::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); flex: none; }
+.pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.pill { display: inline-flex; align-items: center; padding: 0 9px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--panel); font-size: 12.5px; line-height: 1.7; white-space: nowrap; }
+@container (max-width: 700px) {
+  .core { grid-template-columns: minmax(0, 1fr); }
+  .qc-head { grid-template-columns: minmax(0, 1fr); }
+  .qc-gt { text-align: left; }
+}
+.qc-more { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 18px; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 var(--r) var(--r); background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; transition: background .15s var(--ease), color .15s var(--ease); }
+.qc-more:hover { background: color-mix(in srgb, var(--panel-2) 60%, transparent); color: var(--ink); }
+.qc.open .qc-more { border-radius: 0; }
+.qc-more .runs { margin-left: auto; font-size: 12.5px; font-weight: 400; color: var(--ink-3); white-space: nowrap; }
+.qc-more .runs b { font-weight: 500; color: var(--ink); }
+.chev { color: var(--ink-3); transition: transform .22s var(--ease); }
+.qc.open .chev { transform: rotate(90deg); }
+.q-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s var(--ease); }
+.qc.open .q-body { grid-template-rows: 1fr; }
+.q-body > div { overflow: hidden; }
+.q-inner { padding: 6px 18px 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 28px; opacity: 0; transition: opacity .2s var(--ease); }
+.qc.open .q-inner { opacity: 1; transition-delay: .06s; }
+@container (max-width: 860px) { .q-inner { grid-template-columns: minmax(0, 1fr); } }
+.q-inner h4 { margin: 0 0 6px; font-size: 11px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.runs-wrap { overflow-x: auto; }
+.runs-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.runs-tbl th { text-align: left; font-weight: 500; color: var(--ink-3); font-size: 11.5px; padding: 4px 10px 4px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.runs-tbl td { padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.runs-tbl tr:last-child td { border-bottom: 0; }
+.hit { color: var(--ok); font-weight: 500; }
+.strip { display: block; max-width: 100%; height: auto; margin: 2px 0 10px; }
+
+/* ---------- flat tables ---------- */
+.tbl-card { overflow: hidden; }
+.tbl-scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; font-size: 11.5px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--panel); }
+.tbl th button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.tbl th button:hover { color: var(--ink); }
+.tbl th button:focus-visible { outline: 2px solid var(--accent); border-radius: 3px; }
+.tbl th .arr { font-size: 10px; color: var(--accent); }
+.tbl td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl tbody tr.click { cursor: pointer; transition: background .12s; }
+.tbl tbody tr.click:hover td { background: color-mix(in srgb, var(--panel-2) 60%, transparent); }
+.tbl .wide { min-width: 240px; max-width: 420px; }
+.tbl th.wrap { white-space: normal; min-width: 220px; line-height: 1.35; }
+#q-table th, #q-table td { padding-left: 12px; padding-right: 12px; }
+#q-table td.wide, #q-table th.wrap { min-width: 150px; }
+#q-table td.chal { min-width: 140px; }
+.tbl .qdef { margin-top: 3px; font-weight: 500; }
+.tbl .s { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+.empty { padding: 28px 18px; color: var(--ink-3); text-align: center; }
+.skel { height: 52px; border-radius: var(--r-sm); background: linear-gradient(90deg, var(--panel-2), var(--panel), var(--panel-2)); background-size: 200% 100%; animation: sh 1.2s linear infinite; }
+@keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.warn { background: var(--warn-soft); color: var(--warn); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn.primary:hover { background: var(--accent); border-color: var(--accent); filter: brightness(1.08); }
+.btn[disabled] { opacity: .55; cursor: default; pointer-events: none; }
+.seg .ct.new { color: var(--accent); font-weight: 500; }
+.fbar a { color: #a9c0ff; }
+
+/* ---------- Google Drive check ---------- */
+.dv { display: flex; flex-direction: column; gap: 18px; }
+.dv-head { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.dv-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 16px; }
+.dv-top h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.dv-sub { color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
+.dv-msg { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.dv-msg.err { color: var(--warn); }
+.dlist { overflow: hidden; }
+.drow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; padding: 12px 16px; }
+.drow + .drow { border-top: 1px solid var(--line); }
+.drow-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-weight: 500; overflow-wrap: anywhere; }
+.drow-meta { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; overflow-wrap: anywhere; }
+.drow-note { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; max-width: 80ch; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(18px, env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--panel); padding: 8px 14px; border-radius: 8px; font-size: 13px; z-index: 30; box-shadow: var(--shadow-2); max-width: calc(100% - 32px); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></symbol>
+  <symbol id="i-frame" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></symbol>
+  <symbol id="i-side" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <aside class="side" id="side" aria-label="Scene list">
+    <div class="side-in">
+      <div class="side-head">
+        <div class="brand"><span class="mark" aria-hidden="true">R2</span><div><div class="b1">Round 2 Data Collection</div><div class="b2">Real2SimBench scene viewer</div></div></div>
+        <button class="btn icon ghost" type="button" id="side-close" aria-label="Hide sidebar" title="Hide sidebar"><svg class="i"><use href="#i-side"/></svg></button>
+      </div>
+      <div class="side-tools">
+        <label class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="f-term" placeholder="Search scenes and queries" aria-label="Search"><kbd>/</kbd></label>
+        <select class="sel" id="f-collector" aria-label="Collector"><option value="">All collectors</option></select>
+      </div>
+      <div class="side-label"><span>Scenes</span><span class="mono" id="ct-side"></span></div>
+      <nav class="rail" id="rail" tabindex="0" aria-label="Scenes"></nav>
+      <div class="side-foot" id="side-foot"></div>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <div class="main">
+    <header class="top" id="top">
+      <button class="btn icon" type="button" id="side-open" aria-label="Show sidebar" title="Show sidebar" hidden><svg class="i"><use href="#i-side"/></svg></button>
+      <nav class="seg" aria-label="Views">
+        <a href="#scenes" data-view="scenes">Scene <span class="ct" id="ct-scenes"></span></a>
+        <a href="#queries" data-view="queries">All queries <span class="ct" id="ct-queries"></span></a>
+        <a href="#drive" data-view="drive">Drive <span class="ct" id="ct-drive"></span></a>
+      </nav>
+      <div class="push top-actions">
+      <button class="btn" type="button" id="check-drive" title="List new uploads in the Google Drive folder" hidden><svg class="i"><use href="#i-refresh"/></svg>Check Drive</button>
+      <details class="menu" id="exp-menu"><summary class="btn"><svg class="i"><use href="#i-down"/></svg>Export</summary>
+        <div class="pop">
+          <button type="button" id="x-json">Scenes as JSON<span class="hint">every field, one file</span></button>
+          <button type="button" id="x-csv">Queries as CSV<span class="hint">one row per query, sheet headers</span></button>
+        </div></details>
+      </div>
+    </header>
+    <div class="content">
+      <div class="banner" id="banner" hidden></div>
+      <section id="v-scenes" hidden><div class="detail" id="detail"></div></section>
+      <section id="v-queries" hidden><div class="card tbl-card"><div class="tbl-scroll"><table class="tbl" id="q-table"></table></div></div></section>
+      <section id="v-drive" hidden><div class="dv" id="dv"></div></section>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+"use strict";
+const THRESH = 0.10;
+const KNOWN_SCENE = new Set(["schema", "demo", "scene_id", "collector", "status", "environment", "summary", "scope", "dynamic", "input_video", "device", "resolution", "fps", "duration_s", "n_frames", "calibration_video", "evidence_dir", "queries", "notes", "drive", "thumb_asset", "video_asset", "synced_at"]);
+const KNOWN_Q = new Set(["query_id", "metric_domain", "kind", "point_a", "point_b", "point_c", "object", "definition", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "challenges", "robotics_link", "why_hard", "pilot", "results", "notes"]);
+const LABEL = {
+  rigid_distance: "Rigid distance", deformable_distance: "Deformable distance", liquid_volume: "Liquid volume", object_weight: "Object weight", robot_state: "Robot state",
+  temperature: "Temperature", material_composition: "Material composition", image_frame: "Image frame", camera: "Camera",
+  height_above: "height above", path_length: "path length", px_distance: "pixel distance", px_area: "pixel area", focal_length: "focal length",
+  occlusion: "Occlusion", clutter_stacking: "Clutter / stacking", fast_or_shaky_camera: "Fast or shaky camera", low_light: "Low light", zoom_or_lens: "Zoom / lens change",
+  reflection_mirror: "Reflection / mirror", transparency: "Transparency", dynamic_scene: "Dynamic scene", imagined_state: "Imagined state", long_context: "Long context",
+  physical_gap: "Physical gap", fit_affordance: "Fit / affordance", deformable: "Deformable", small_or_thin: "Small or thin", irregular_shape: "Irregular shape",
+  color: "Color", other: "Other",
+};
+const lab = (k) => LABEL[k] || String(k ?? "").replace(/_/g, " ");
+const MISS = '<span class="miss">Not set</span>';
+
+// ---------- helpers ----------
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const isNum = (v) => typeof v === "number" && Number.isFinite(v);
+const icon = (n, cls = "") => `<svg class="i${cls ? " " + cls : ""}"><use href="#i-${n}"/></svg>`;
+const blank = (v) => v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length);
+const DASH = '<span class="faint">—</span>';
+const val = (v) => (blank(v) ? DASH : esc(Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : v));
+const fmt = (v) => {
+  if (!isNum(v)) return "—";
+  const a = Math.abs(v);
+  if (a >= 10000) return Math.round(v).toLocaleString("en-US");
+  if (a >= 100) return String(Math.round(v * 10) / 10);
+  if (a >= 1) return String(Math.round(v * 100) / 100);
+  return String(Math.round(v * 1000) / 1000);
+};
+const sPct = (x) => (isNum(x) ? (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x * 100).toFixed(1) + "%" : "—");
+const relErr = (p, g) => (isNum(p) && isNum(g) && g !== 0 ? (p - g) / Math.abs(g) : null);
+const extrasOf = (o, known) => Object.entries(o || {}).filter(([k]) => !known.has(k));
+const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const mobile = () => matchMedia("(max-width: 900px)").matches;
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } };
+let tt = 0;
+function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => (t.hidden = true), 2400); }
+function runStats(q) {
+  const errs = (q.results || []).map((r) => relErr(r.predicted, q.gt_value)).filter((e) => e !== null);
+  return { n: errs.length, within: errs.filter((e) => Math.abs(e) <= THRESH + 1e-12).length, best: errs.length ? errs.reduce((b, e) => (Math.abs(e) < Math.abs(b) ? e : b)) : null };
+}
+function targets(q) {
+  const p = [];
+  if (q.point_a) p.push(`<b class="faint">A</b> ${esc(q.point_a)}`);
+  if (q.point_b) p.push(`<b class="faint">B</b> ${esc(q.point_b)}`);
+  if (q.point_c) p.push(`<b class="faint">C</b> ${esc(q.point_c)}`);
+  if (q.object) p.push(esc(q.object));
+  if (q.moment) p.push(`at ${esc(q.moment)}`);
+  if (Number.isInteger(q.frame_index)) p.push(`frame ${q.frame_index}`);
+  return p.join('<span class="faint"> · </span>');
+}
+// Shape of a scene's video: from its recorded resolution first, then the real video once it loads.
+function shapeOf(w, h) { if (!(w > 0 && h > 0)) return "tall"; const r = w / h; return r > 1.15 ? "wide" : r < 0.87 ? "tall" : "square"; }
+
+// ---------- state ----------
+const DOCID = new WeakMap(); // scene object -> its database document id
+const state = { scenes: [], meta: null, loaded: false, db: "connecting", err: "", view: "scenes", sel: null, openQs: new Set(), scrollQ: null, detailSig: null, pendingSeek: null, sort: { key: "query_id", dir: 1 } };
+const allQueries = () => state.scenes.flatMap((s) => (s.queries || []).map((q, i) => ({ s, q, id: q.query_id || `${s.scene_id}-q${i + 1}` })));
+function filters() {
+  const term = $("#f-term").value.trim().toLowerCase(), c = $("#f-collector").value;
+  return {
+    scenes: state.scenes.filter((s) => (!c || s.collector === c) && (!term || JSON.stringify(s).toLowerCase().includes(term))),
+    queries: allQueries().filter((x) => (!c || x.s.collector === c) && (!term || (x.id + " " + x.s.scene_id + " " + JSON.stringify(x.q)).toLowerCase().includes(term))),
+  };
+}
+
+// ---------- sidebar ----------
+const app = $("#app");
+let collapsed = lsGet("r2s-side") === "closed";
+function applySide() {
+  const m = mobile();
+  app.classList.toggle("collapsed", !m && collapsed);
+  $("#side-open").hidden = !(m || collapsed);
+  $("#scrim").hidden = !(m && app.classList.contains("drawer"));
+  $("#side-close").setAttribute("aria-label", m ? "Close scene list" : "Hide sidebar");
+}
+function openSide() { if (mobile()) app.classList.add("drawer"); else { collapsed = false; lsSet("r2s-side", "open"); } applySide(); if (!mobile()) setTimeout(() => $("#f-term").focus({ preventScroll: true }), 120); }
+function closeSide() { if (mobile()) app.classList.remove("drawer"); else { collapsed = true; lsSet("r2s-side", "closed"); } applySide(); }
+
+function renderChrome() {
+  const qs = allQueries();
+  $("#ct-scenes").textContent = "";
+  $("#ct-queries").textContent = state.loaded ? qs.length : "";
+  const cols = [...new Set(state.scenes.map((s) => s.collector).filter(Boolean))].sort();
+  const sel = $("#f-collector"), cur = sel.value;
+  sel.innerHTML = '<option value="">All collectors</option>' + cols.map((c) => `<option${c === cur ? " selected" : ""}>${esc(c)}</option>`).join("");
+  const R = driveView(), nNew = R && R.counts ? (R.counts.new || 0) + (R.counts.changed || 0) : 0;
+  $("#ct-drive").textContent = nNew ? `${nNew} new` : "";
+  $("#ct-drive").classList.toggle("new", nNew > 0);
+  $("#check-drive").disabled = drive.busy;
+  $("#check-drive").hidden = !drive.mcp || state.view === "drive";
+  $("#side-foot").textContent = state.db === "absent" ? "Not signed in" : !state.loaded ? "Loading…" : `${state.scenes.length} scenes · ${qs.length} queries · ${cols.length} collectors` + (R && R.checked_at ? ` · Drive checked ${ago(R.checked_at)}` : " · Drive not checked yet");
+  const b = $("#banner"), parts = [];
+  if (state.db === "absent") parts.push("<b>Sign in to claude.ai</b> to see the data.");
+  if (state.err) parts.push(esc(state.err));
+  b.innerHTML = parts.join(" "); b.hidden = !parts.length;
+}
+function renderRail() {
+  const rail = $("#rail");
+  if (!state.loaded) { rail.innerHTML = state.db === "absent" ? '<div class="rail-empty">Sign in to claude.ai to see the scenes.</div>' : '<div class="skel"></div><div class="skel"></div><div class="skel"></div>'; $("#ct-side").textContent = ""; return; }
+  const { scenes } = filters();
+  $("#ct-side").textContent = scenes.length === state.scenes.length ? String(scenes.length) : `${scenes.length} of ${state.scenes.length}`;
+  if (!state.scenes.length) { rail.innerHTML = '<div class="rail-empty">No scenes yet.</div>'; return; }
+  rail.innerHTML = scenes.map((s) => `<button class="item" type="button" data-sid="${esc(s.scene_id)}" aria-selected="${s.scene_id === state.sel}" aria-current="${s.scene_id === state.sel ? "true" : "false"}">
+      ${s.thumb_asset ? `<img class="th" src="/_blob/${encodeURIComponent(s.thumb_asset)}" alt="" loading="lazy">` : '<span class="th-ph"></span>'}
+      <span style="min-width:0"><span class="item-id">${esc(s.scene_id)}</span>
+      <span class="item-meta">${esc(s.collector || "—")}<span>·</span>${plural((s.queries || []).length, "query", "queries")}${s.video_asset ? `<span>·</span>${icon("video")}` : ""}</span></span></button>`).join("")
+    || '<div class="rail-empty">No scenes match your search.</div>';
+}
+
+// ---------- scene detail ----------
+function strip(q) {
+  const res = (q.results || []).map((r) => ({ r, e: relErr(r.predicted, q.gt_value) })).filter((x) => x.e !== null);
+  if (!res.length) return "";
+  const W = 260, pad = 10, span = 0.5, x = (e) => pad + ((Math.max(-span, Math.min(span, e)) + span) / (2 * span)) * (W - 2 * pad);
+  const dots = res.map(({ r, e }) => {
+    const gpt = String(r.model).startsWith("gpt"), cx = x(e);
+    return `<g><title>${esc(r.model)} attempt ${esc(r.attempt ?? "")}: ${sPct(e)}</title>${gpt ? `<circle cx="${cx.toFixed(1)}" cy="13" r="4.2" fill="var(--ink)"/>` : `<rect x="${(cx - 4).toFixed(1)}" y="9" width="8" height="8" rx="1.5" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.6"/>`}</g>`;
+  }).join("");
+  const ticks = [-0.5, -0.1, 0, 0.1, 0.5].map((t) => `<text x="${x(t).toFixed(1)}" y="36" font-size="9.5" text-anchor="middle" fill="var(--ink-3)" font-family="Geist Mono, monospace">${t === 0 ? "0" : (t > 0 ? "+" : "−") + Math.abs(t * 100) + "%"}</text>`).join("");
+  return `<svg class="strip" width="${W}" height="40" viewBox="0 0 ${W} 40" role="img" aria-label="Relative error of each model attempt; the shaded band is within 10 percent">
+    <rect x="${x(-THRESH).toFixed(1)}" y="3" width="${(x(THRESH) - x(-THRESH)).toFixed(1)}" height="20" rx="3" fill="var(--ok-soft)"/>
+    <line x1="${pad}" y1="23" x2="${W - pad}" y2="23" stroke="var(--line-2)"/><line x1="${x(0)}" y1="3" x2="${x(0)}" y2="23" stroke="var(--ink-3)" stroke-dasharray="2 3"/>${ticks}${dots}</svg>`;
+}
+// The three core fields, labelled exactly as in the collection sheet; a missing one says so.
+function coreFields(q) {
+  const ch = q.challenges || [];
+  return `<dl class="core">
+    <div><dt>Metric domain</dt><dd>${q.metric_domain ? `<span class="dom">${esc(lab(q.metric_domain))}</span>` : MISS}</dd></div>
+    <div><dt>Associated challenges</dt><dd>${ch.length ? `<div class="pills">${ch.map((c) => `<span class="pill">${esc(lab(c))}</span>`).join("")}</div>` : MISS}</dd></div>
+    <div class="link"><dt>Connection to real-world application / robotics failure mode</dt><dd>${q.robotics_link ? esc(q.robotics_link) : MISS}</dd></div>
+  </dl>`;
+}
+function queryItem(s, q, i) {
+  const id = q.query_id || `${s.scene_id}-q${i + 1}`, open = state.openQs.has(id), st = runStats(q);
+  const n = (String(id).match(/q(\d+)$/i) || [])[1] || String(i + 1);
+  const unit = esc(q.gt_unit || "");
+  const gt = isNum(q.gt_value) ? `<div class="v">${fmt(q.gt_value)} <span class="u">${unit}</span></div>${isNum(q.gt_uncertainty) ? `<div class="u">± ${fmt(q.gt_uncertainty)} ${unit}</div>` : ""}` : '<div class="u miss">No value yet</div>';
+  const runs = st.n ? `<span class="runs"><b>${st.within} of ${st.n}</b> runs within 10%</span>` : '<span class="runs">Not run yet</span>';
+  const res = q.results || [];
+  const details = [["how measured", q.how_measured, true], ["kind", q.kind ? lab(q.kind) : null, true], ["why it should be hard", q.why_hard],
+    ["evidence", (q.evidence || []).join(", ") || null], ["notes", q.notes], ...extrasOf(q, KNOWN_Q).map(([k, v]) => [k, v])]
+    .filter(([, v, always]) => always || !blank(v));
+  return `<article class="qc${open ? " open" : ""}" data-qid="${esc(id)}">
+    <div class="qc-main">
+      <div class="qc-head">
+        <div style="min-width:0">
+          <div class="qc-kicker"><span class="qc-n">Q${esc(n)}</span><span class="mono">${esc(id)}</span></div>
+          <h4 class="qc-def">${esc(q.definition || "(no definition)")}</h4>
+          ${targets(q) ? `<div class="qc-sub">${targets(q)}</div>` : ""}
+        </div>
+        <div class="qc-gt"><div class="lab">Ground truth</div>${gt}</div>
+      </div>
+      ${coreFields(q)}
+    </div>
+    <button class="qc-more" type="button" aria-expanded="${open}">${icon("chev", "chev")}Measurement and model runs${runs}</button>
+    <div class="q-body"><div><div class="q-inner">
+      <div><h4>Measurement</h4><table class="kv" style="margin-top:0"><tbody>${details.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${val(v)}</td></tr>`).join("")}</tbody></table></div>
+      <div><h4>Model runs</h4>${res.length ? `${strip(q)}<div class="runs-wrap"><table class="runs-tbl"><thead><tr><th>Model</th><th>Try</th><th>Predicted</th><th>Error</th><th></th></tr></thead><tbody>${res.map((r) => {
+          const e = relErr(r.predicted, q.gt_value), hit = e !== null && Math.abs(e) <= THRESH + 1e-12;
+          return `<tr><td><span class="mono">${esc(r.model)}</span> <span class="faint">${esc(r.harness || "")}${r.effort ? " · " + esc(r.effort) : ""}</span></td><td class="num">${esc(r.attempt ?? "")}</td><td class="mono num">${fmt(r.predicted)}</td><td class="mono num">${sPct(e)}</td><td>${hit ? '<span class="hit">within 10%</span>' : '<span class="faint">missed</span>'}</td></tr>`;
+        }).join("")}</tbody></table></div><div class="faint" style="font-size:11.5px;margin-top:6px">● GPT-6.1 Sol &nbsp; ▢ Opus 5.5 &nbsp; shaded band: within 10%</div>` : '<div class="faint">No model runs yet.</div>'}
+        ${Number.isInteger(q.frame_index) && s.video_asset ? `<div style="margin-top:12px"><button class="btn" type="button" data-seek="${q.frame_index}">${icon("frame")}Show frame ${q.frame_index}</button></div>` : ""}
+      </div>
+    </div></div></div></article>`;
+}
+function renderQueriesInto(s) {
+  const el = $("#d-queries"); if (!el) return;
+  const qs = s.queries || [];
+  el.innerHTML = qs.length ? qs.map((q, i) => queryItem(s, q, i)).join("") : '<div class="card empty">No queries for this scene yet.</div>';
+}
+function renderDetail() {
+  const el = $("#detail");
+  if (!state.loaded) { el.innerHTML = state.db === "absent" ? "" : '<div class="skel" style="height:420px"></div>'; return; }
+  const s = state.scenes.find((x) => x.scene_id === state.sel);
+  if (!s) { el.innerHTML = state.scenes.length ? '<div class="card empty">Pick a scene from the list.</div>' : '<div class="card empty">No scenes yet. They appear here once collectors upload to Drive and someone runs Check Drive.</div>'; state.detailSig = null; return; }
+  const sig = JSON.stringify(s);
+  if (sig === state.detailSig) { renderQueriesInto(s); afterQueries(); return; }
+  state.detailSig = sig;
+  const fps = Number(s.fps) || 30, d = s.drive || {};
+  const [rw, rh] = Array.isArray(s.resolution) ? s.resolution : [0, 0];
+  const shape = shapeOf(rw, rh);
+  const clean = { ...s }; delete clean.thumb_asset; delete clean.video_asset; delete clean.synced_at; delete clean.drive;
+  const videoMeta = [rw && rh ? `${rw} × ${rh}` : null, s.fps ? `${s.fps} fps` : null, isNum(s.duration_s) ? `${fmt(s.duration_s)} s` : null, isNum(s.n_frames) ? `${s.n_frames} frames` : null].filter(Boolean).join(" · ");
+  // The agent picks its own coordinate system, so the top shows only what to rebuild and from which video.
+  const facts = [["Reconstruction scope", s.scope ? `<span class="cap">${esc(s.scope)}</span>` : MISS],
+    ["Video input", s.input_video ? `<span class="mono">${esc(s.input_video)}</span>${videoMeta ? `<span class="faint"> · ${esc(videoMeta)}</span>` : ""}` : MISS]];
+  const allRows = [["collector", s.collector], ["status", s.status], ["environment", s.environment], ["dynamic", s.dynamic], ["summary", s.summary], ["scope", s.scope],
+    ["input_video", s.input_video], ["device", s.device], ["resolution", rw && rh ? `${rw} × ${rh}` : null], ["fps", s.fps], ["duration_s", s.duration_s], ["n_frames", s.n_frames],
+    ["calibration_video", s.calibration_video], ["evidence_dir", s.evidence_dir], ["notes", s.notes], ["drive", d.path || d.folder_url], ...extrasOf(s, KNOWN_SCENE)];
+  const ar = rw && rh ? ` style="aspect-ratio:${rw} / ${rh}"` : "";
+  const dvids = Array.isArray(d.videos) ? d.videos : [];
+  const onDrive = dvids.length ? `<a class="ft" href="${esc(dvids[0].url || d.folder_url || "")}" target="_blank" rel="noopener">Open video in Drive</a>` : "";
+  const media = s.video_asset
+    ? `<video id="v" data-fps="${fps}"${ar} controls playsinline muted preload="metadata"${s.thumb_asset ? ` poster="/_blob/${encodeURIComponent(s.thumb_asset)}"` : ""} src="/_blob/${encodeURIComponent(s.video_asset)}" aria-label="Video of ${esc(s.scene_id)}"></video>
+       <div class="fbar"><button type="button" id="fr-prev" aria-label="Previous frame" title="Previous frame (,)">${icon("prev")}</button><button type="button" id="fr-next" aria-label="Next frame" title="Next frame (.)">${icon("chev")}</button><span class="fr" id="fr">frame 0</span><span class="ft" id="ft">0.00 s</span></div>`
+    : s.thumb_asset ? `<img id="still"${ar} src="/_blob/${encodeURIComponent(s.thumb_asset)}" alt="Frame from ${esc(s.scene_id)}">${onDrive ? `<div class="fbar"><span>No playable copy yet</span>${onDrive}</div>` : ""}`
+    : `<div class="no-media">${onDrive ? `<div>No playable copy yet<br>${onDrive}</div>` : "No video uploaded"}</div>`;
+  el.innerHTML = `
+    <div class="d-head">
+      <div class="d-title"><h2>${esc(s.scene_id)}</h2>
+        <div class="d-meta">${[s.collector || "—", s.environment, s.status].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('<span class="sep">·</span>')}${s.demo ? '<span class="tag">Example data</span>' : ""}</div></div>
+      <div class="d-actions">${d.folder_url ? `<a class="btn" href="${esc(d.folder_url)}" target="_blank" rel="noopener">${icon("folder")}Open in Drive</a>` : ""}<button class="btn" type="button" id="copy-json">${icon("copy")}Copy JSON</button></div>
+    </div>
+    <div class="card hero ${shape}" id="hero">
+      <div class="media">${media}</div>
+      <div class="facts">
+        <dl class="fgrid">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}</dl>
+        <details class="disc"><summary>${icon("chev")}All fields</summary><table class="kv"><tbody>${allRows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${val(v)}</td></tr>`).join("")}</tbody></table></details>
+        <details class="disc"><summary>${icon("chev")}scene.json</summary><pre id="raw-json"></pre></details>
+      </div>
+    </div>
+    <div><div class="sec-head"><h3>Queries</h3><span class="faint mono">${(s.queries || []).length}</span></div><div class="qlist" id="d-queries"></div></div>`;
+  $("#raw-json").textContent = JSON.stringify(clean, null, 2);
+  $("#copy-json").onclick = () => copyText(JSON.stringify(clean, null, 2), "Copied scene.json");
+  renderQueriesInto(s);
+  if (!reduced() && !document.startViewTransition) { el.classList.remove("enter"); void el.offsetWidth; el.classList.add("enter"); }
+  wireMedia(fps);
+  afterQueries();
+}
+function afterQueries() {
+  if (!state.scrollQ) return;
+  const node = document.querySelector(`.qc[data-qid="${CSS.escape(state.scrollQ)}"]`);
+  state.scrollQ = null;
+  if (node) node.scrollIntoView({ block: "center", behavior: reduced() ? "auto" : "smooth" });
+}
+
+// ---------- video ----------
+function reshape(w, h, node) {
+  const hero = $("#hero"); if (!hero || !(w > 0 && h > 0)) return;
+  hero.classList.remove("wide", "tall", "square"); hero.classList.add(shapeOf(w, h));
+  node.style.aspectRatio = `${w} / ${h}`;
+}
+function seekToFrame(f) {
+  const v = $("#v"); if (!v || !Number.isInteger(f)) return;
+  const fps = Number(v.dataset.fps) || 30;
+  const go = () => { v.pause(); v.currentTime = Math.min((f + 0.5) / fps, Math.max(0, (v.duration || Infinity) - 0.5 / fps)); };
+  if (v.readyState >= 1) go(); else v.addEventListener("loadedmetadata", go, { once: true });
+  v.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" });
+}
+function frameNow() { const v = $("#v"); return v ? Math.max(0, Math.floor(v.currentTime * (Number(v.dataset.fps) || 30) + 1e-6)) : 0; }
+function wireMedia(fps) {
+  const still = $("#still");
+  if (still) { const fix = () => reshape(still.naturalWidth, still.naturalHeight, still); if (still.complete) fix(); else still.addEventListener("load", fix, { once: true }); }
+  const v = $("#v"); if (!v) return;
+  const total = () => (isNum(v.duration) ? Math.round(v.duration * fps) : null);
+  const show = (t) => { const f = Math.max(0, Math.floor(t * fps + 1e-6)), n = total(); $("#fr").textContent = `frame ${f}${n ? ` / ${n}` : ""}`; $("#ft").textContent = `${t.toFixed(2)} s`; };
+  if ("requestVideoFrameCallback" in v) { const cb = (_n, meta) => { if (!v.isConnected) return; show(meta.mediaTime); v.requestVideoFrameCallback(cb); }; v.requestVideoFrameCallback(cb); }
+  ["timeupdate", "seeked"].forEach((ev) => v.addEventListener(ev, () => show(v.currentTime)));
+  v.addEventListener("loadedmetadata", () => { reshape(v.videoWidth, v.videoHeight, v); show(v.currentTime); });
+  v.addEventListener("error", () => { const m = v.closest(".media"); if (m) m.innerHTML = '<div class="no-media">This video can\'t be played in this browser</div>'; });
+  $("#fr-prev").onclick = () => seekToFrame(Math.max(0, frameNow() - 1));
+  $("#fr-next").onclick = () => seekToFrame(frameNow() + 1);
+  if (state.pendingSeek !== null) { const f = state.pendingSeek; state.pendingSeek = null; seekToFrame(f); }
+}
+
+// ---------- all queries ----------
+const SORTS = {
+  query_id: (x) => x.id, domain: (x) => lab(x.q.metric_domain || "~"), challenges: (x) => (x.q.challenges || []).map(lab).join(", ") || "~",
+  runs: (x) => { const r = runStats(x.q); return r.n ? r.within / r.n : 2; },
+};
+function renderQueryTable() {
+  const t = $("#q-table");
+  if (!state.loaded) { t.innerHTML = '<tbody><tr><td class="empty">Loading…</td></tr></tbody>'; return; }
+  const { key, dir } = state.sort, f = SORTS[key] || SORTS.query_id;
+  const rows = filters().queries.slice().sort((a, b) => { const A = f(a), B = f(b); return (A < B ? -1 : A > B ? 1 : 0) * dir || a.id.localeCompare(b.id); });
+  const th = (k, label, cls = "") => `<th${cls ? ` class="${cls}"` : ""}${k ? ` aria-sort="${key === k ? (dir > 0 ? "ascending" : "descending") : "none"}"` : ""}>${k ? `<button type="button" data-sort="${k}">${label}${key === k ? `<span class="arr">${dir > 0 ? "▲" : "▼"}</span>` : ""}</button>` : label}</th>`;
+  t.innerHTML = `<thead><tr>${th("query_id", "Query")}${th("domain", "Metric domain")}${th("challenges", "Associated challenges")}${th(null, "Connection to real-world application / robotics failure mode", "wrap")}${th(null, "Ground truth")}${th("runs", "Runs within 10%")}</tr></thead><tbody>${
+    rows.map((x) => { const st = runStats(x.q), ch = x.q.challenges || []; return `<tr class="click" tabindex="0" data-goto="${esc(x.s.scene_id)}" data-qid="${esc(x.id)}">
+      <td class="wide"><span class="mono">${esc(x.id)}</span> <span class="faint">${esc(x.s.collector || "")}</span><span class="cap qdef">${esc(x.q.definition || "")}</span></td>
+      <td>${x.q.metric_domain ? `<span class="dom">${esc(lab(x.q.metric_domain))}</span>` : MISS}</td>
+      <td class="chal">${ch.length ? `<div class="pills">${ch.map((c) => `<span class="pill">${esc(lab(c))}</span>`).join("")}</div>` : MISS}</td>
+      <td class="wide">${x.q.robotics_link ? `<span class="cap">${esc(x.q.robotics_link)}</span>` : MISS}</td>
+      <td class="mono num" style="white-space:nowrap">${isNum(x.q.gt_value) ? `${fmt(x.q.gt_value)} ${esc(x.q.gt_unit || "")}${isNum(x.q.gt_uncertainty) ? `<div class="s">± ${fmt(x.q.gt_uncertainty)}</div>` : ""}` : '<span class="miss">no value</span>'}</td>
+      <td class="mono num" style="white-space:nowrap">${st.n ? `${st.within} of ${st.n}<div class="s">closest ${sPct(st.best)}</div>` : '<span class="faint">not run</span>'}</td></tr>`; }).join("")
+    || '<tr><td colspan="6" class="empty">No queries match your search.</td></tr>'}</tbody>`;
+}
+
+// ---------- Google Drive check ----------
+// "Check Drive" lists Second-Round-Data-Collection through the viewer's own Google Drive connector, compares it with
+// the registry, and saves the result to meta/sync so every viewer sees it. "Import" copies a scene.json (and a
+// thumbnail.* next to it) into the registry. Playable video copies are made separately by Claude Code.
+const DRIVE = { server: "Google Drive", root: "1IOUYD7-bWOdYgqBpK6qQsautl8f_y29H", name: "Second-Round-Data-Collection" };
+const FOLDER_MIME = "application/vnd.google-apps.folder", SHORTCUT_MIME = "application/vnd.google-apps.shortcut";
+const folderUrl = (id) => `https://drive.google.com/drive/folders/${encodeURIComponent(id)}`;
+const VIDEO_EXT = /\.(mov|mp4|m4v|avi|mkv|webm|hevc|3gp|mts|insv)$/i, IMAGE_EXT = /\.(jpe?g|png|heic|heif|webp|gif|tiff?)$/i;
+const SIDE_DIRS = /^(inputs?|evidence|calibration|videos?|raw|photos?|images?)$/i;
+const isSceneJson = (t) => /\.json$/i.test(t) && /scene/i.test(t);
+const kindOf = (f) => (isSceneJson(f.title) ? "json" : /^video\//.test(f.mime) || VIDEO_EXT.test(f.title) ? "video" : /^image\//.test(f.mime) || IMAGE_EXT.test(f.title) ? "image" : "other");
+const docIdFor = (v) => String(v ?? "").trim().replace(/\s+/g, "-").replace(/[^A-Za-z0-9_\-.~:@+]/g, "").replace(/^\.+$/, "").slice(0, 200);
+const RESERVED = ["thumb_asset", "video_asset", "drive", "synced_at"];
+const ST = {
+  new: ["New", "accent"], changed: ["Updated on Drive", "accent"], conflict: ["ID already taken", "warn"], error: ["scene.json problem", "warn"],
+  no_json: ["Video, no scene.json", ""], missing: ["Gone from Drive", "warn"], imported: ["In registry", "ok"],
+};
+const ST_ORDER = ["new", "changed", "conflict", "error", "no_json", "missing", "imported"];
+// Connector failures that stop the whole check (anything else only marks one file).
+const FATAL = new Set(["needs_reauth", "server_not_connected", "selection_required", "server_not_found", "server_unavailable", "not_in_manifest", "blocked_by_policy",
+  "approval_required", "consent_required", "rate_limited", "upstream_error", "not_granted", "capability_disabled", "capability_removed", "user_changed", "cancelled"]);
+const drive = { mcp: null, canEdit: false, busy: false, phase: "", err: "", result: null, importing: null, retries: 0 };
+const driveView = () => drive.result || (state.meta && Array.isArray(state.meta.items) ? state.meta : null);
+const sceneDoc = (s) => DOCID.get(s) || docIdFor(s.scene_id);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+function ago(iso) {
+  const t = Date.parse(iso); if (!t) return "";
+  const s = (Date.now() - t) / 1000;
+  return s < 60 ? "just now" : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : new Date(t).toLocaleDateString();
+}
+const plural = (n, one, many = one + "s") => `${n} ${n === 1 ? one : many}`;
+const local = (iso) => { const t = Date.parse(iso); return t ? new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""; };
+function driveErrorText(e) {
+  const c = e && e.code;
+  const m = {
+    server_not_connected: "Google Drive isn't connected to your claude.ai account. Add it in claude.ai Settings → Connectors, then check again.",
+    needs_reauth: "Google Drive needs to be reconnected: claude.ai Settings → Connectors.",
+    selection_required: "More than one Google Drive is connected. Pick one when claude.ai asks, then check again.",
+    not_in_manifest: "Google Drive isn't allowed for this page. Turn it on in the artifact's Permissions menu, then check again.",
+    approval_required: "Reading Drive needs your OK. Click Check Drive again and choose Allow.",
+    consent_required: "Reading Drive needs your OK. Click Check Drive again and choose Allow.",
+    blocked_by_policy: "Your organization's policy blocks Google Drive here.",
+    server_unavailable: "Google Drive didn't answer. Try again in a minute.",
+    rate_limited: "Too many Drive requests just now. Try again in a minute.",
+    not_granted: "This view can't use connectors.", capability_disabled: "This view can't use connectors.", capability_removed: "This view can't use connectors.",
+    user_changed: "You signed in as someone else; reload the page.",
+  }[c];
+  return m || `Couldn't finish the Drive check${c ? ` (${c})` : ""}${e && e.message && !c ? `: ${e.message}` : ""}.`;
+}
+function payloadOf(res) {
+  let p = res && res.payload !== undefined ? res.payload : null;
+  if (p === null && res && Array.isArray(res.content)) { const t = res.content.find((b) => b && b.type === "text"); p = t ? t.text : null; }
+  if (typeof p === "string") { try { p = JSON.parse(p); } catch { /* plain text */ } }
+  return p;
+}
+async function call(tool, input) {
+  try { return payloadOf(await drive.mcp.callTool(DRIVE.server, tool, input, { cache: false })); }
+  catch (e) {
+    if (!(e && e.retryable) || drive.retries <= 0) throw e;
+    drive.retries--; // reads only, once per check
+    await wait(Math.min(60000, e.retryAfterMs || 700 + Math.random() * 1300));
+    return payloadOf(await drive.mcp.callTool(DRIVE.server, tool, input, { cache: false }));
+  }
+}
+async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const k = i++; await fn(items[k], k); } })); }
+async function listChildren(parents) {
+  const query = parents.map((id) => `parentId = '${String(id).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`).join(" or ");
+  const out = []; let token = null;
+  for (let page = 0; page < 40; page++) {
+    const input = { query, excludeContentSnippets: true, pageSize: 100 };
+    if (token) input.pageToken = token;
+    const p = await call("search_files", input);
+    const files = p && Array.isArray(p.files) ? p.files : [];
+    out.push(...files);
+    token = p && p.nextPageToken;
+    if (!files.length || !token) break;
+  }
+  return out;
+}
+async function walk() {
+  const folders = new Map([[DRIVE.root, { id: DRIVE.root, title: DRIVE.name, parent: null, modified: "" }]]), files = new Map();
+  let level = [DRIVE.root];
+  for (let depth = 0; level.length && depth < 10; depth++) {
+    const next = [], chunks = [];
+    for (let i = 0; i < level.length; i += 12) chunks.push(level.slice(i, i + 12));
+    await pool(chunks, 3, async (chunk) => {
+      for (const f of await listChildren(chunk)) {
+        if (!f || !f.id || f.trashed) continue;
+        const sc = f.mimeType === SHORTCUT_MIME ? f.shortcutDetails || {} : null;
+        const mime = sc ? sc.targetMimeType || "" : f.mimeType || "", id = (sc && sc.targetFileId) || f.id;
+        if (f.parentId === DRIVE.root && mime !== FOLDER_MIME) continue; // only people's folders live at the top
+        if (mime === FOLDER_MIME) {
+          if (!folders.has(id)) { folders.set(id, { id, title: f.title || "folder", parent: f.parentId, modified: f.modifiedTime || "" }); next.push(id); }
+        } else if (!files.has(f.id)) {
+          files.set(f.id, { id, title: f.title || "", mime, parent: f.parentId, modified: f.modifiedTime || "", size: Number(f.fileSize) || 0, url: f.viewUrl || "" });
+        }
+      }
+      drive.phase = `Scanning Drive: ${folders.size - 1} folders, ${files.size} files so far`; renderDrive();
+    });
+    level = next;
+  }
+  return { folders, files };
+}
+function pathOf(folders, id) { const parts = []; let cur = folders.get(id), g = 0; while (cur && cur.id !== DRIVE.root && g++ < 20) { parts.unshift(cur.title); cur = folders.get(cur.parent); } return parts.join(" / "); }
+function topOf(folders, id) { let cur = folders.get(id), g = 0; while (cur && cur.parent !== DRIVE.root && g++ < 20) cur = folders.get(cur.parent); return cur && cur.parent === DRIVE.root ? cur : null; }
+function b64bytes(s) { const bin = atob(String(s).replace(/\s+/g, "")); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+async function download(id) {
+  const p = await call("download_file_content", { fileId: id });
+  const c = typeof p === "string" ? p : p && typeof p === "object" ? p.content : null;
+  if (typeof c !== "string") throw new Error("Drive sent no file content");
+  try { return { bytes: b64bytes(c), mime: (p && p.mimeType) || "" }; } catch { return { text: c, mime: (p && p.mimeType) || "" }; }
+}
+async function readSceneJson(id) {
+  const r = await download(id);
+  const text = (r.text ?? new TextDecoder("utf-8").decode(r.bytes)).replace(/^﻿/, "");
+  let obj;
+  try { obj = JSON.parse(text); } catch (e) { throw new Error(`not valid JSON (${e.message})`); }
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw new Error("the file must hold one JSON object");
+  return obj;
+}
+// A registry copy and an upload are the same scene when they name the same input video and collector.
+const sameScene = (ex, it) => !!(ex && ex.input_video && it.input_video === ex.input_video && (ex.collector || "") === (it.collector || ""));
+const recount = (items) => Object.fromEntries(ST_ORDER.map((k) => [k, items.filter((i) => i.status === k).length]));
+async function classify(w) {
+  const { folders, files } = w;
+  const onDrive = new Set([...files.values()].map((f) => f.id));
+  const jsonIn = new Map();
+  for (const f of files.values()) if (kindOf(f) === "json" && f.parent !== DRIVE.root) { if (!jsonIn.has(f.parent)) jsonIn.set(f.parent, []); jsonIn.get(f.parent).push(f); }
+  const sceneFolderOf = (id) => { for (let cur = id, g = 0; cur && cur !== DRIVE.root && g < 20; cur = folders.get(cur)?.parent, g++) if (jsonIn.has(cur)) return cur; return null; };
+  // Every non-JSON file belongs to its nearest folder with a scene.json; otherwise to its own folder (or the one above input/, evidence/ ...).
+  const groups = new Map();
+  for (const f of files.values()) {
+    if (kindOf(f) === "json") continue;
+    let g = sceneFolderOf(f.parent);
+    if (!g) { g = f.parent; const fo = folders.get(g); if (fo && SIDE_DIRS.test(fo.title) && fo.parent && fo.parent !== DRIVE.root) g = fo.parent; }
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(f);
+  }
+  const personOf = (id) => (topOf(folders, id) || {}).title || "";
+  const stats = (list) => ({ videos: list.filter((f) => kindOf(f) === "video").length, images: list.filter((f) => kindOf(f) === "image").length, files: list.length, modified: list.reduce((m, f) => (f.modified > m ? f.modified : m), "") });
+  const linked = new Map(); for (const s of state.scenes) if (s.drive && s.drive.scene_json_id) linked.set(s.drive.scene_json_id, s);
+  const byDoc = new Map(state.scenes.map((s) => [sceneDoc(s), s]));
+  const items = [];
+  for (const [fid, jsons] of jsonIn) {
+    const fo = folders.get(fid) || { title: "" }, list = groups.get(fid) || [], st = stats(list);
+    const thumb = list.find((f) => f.parent === fid && kindOf(f) === "image" && /^thumb/i.test(f.title) && !/\.(heic|heif)$/i.test(f.title));
+    for (const j of jsons) {
+      const it = { key: j.id, status: "new", person: personOf(fid), path: pathOf(folders, fid), folder_id: fid, folder_url: folderUrl(fid), folder_title: fo.title, scene_json_id: j.id, scene_json_modified: j.modified,
+        videos: st.videos, images: st.images, files: st.files + jsons.length, modified: j.modified > st.modified ? j.modified : st.modified,
+        thumb_id: thumb ? thumb.id : null, thumb_mime: thumb ? thumb.mime : null, thumb_modified: thumb ? thumb.modified : null,
+        video_files: list.filter((f) => kindOf(f) === "video").map((f) => ({ id: f.id, title: f.title, size: f.size, url: f.url })) };
+      const s = linked.get(j.id);
+      if (s) Object.assign(it, { doc_id: sceneDoc(s), scene_id: s.scene_id, collector: it.person || s.collector || "", n_queries: (s.queries || []).length, status: j.modified > (s.drive.modified || "") ? "changed" : "imported" });
+      items.push(it);
+    }
+  }
+  for (const [gid, list] of groups) {
+    if (jsonIn.has(gid) || gid === DRIVE.root) continue;
+    const st = stats(list); if (!st.videos) continue;
+    items.push({ key: "f:" + gid, status: "no_json", person: personOf(gid), collector: personOf(gid), path: pathOf(folders, gid), folder_id: gid, folder_url: folderUrl(gid), ...st });
+  }
+  for (const s of state.scenes) if (s.drive && s.drive.scene_json_id && !onDrive.has(s.drive.scene_json_id))
+    items.push({ key: "m:" + s.drive.scene_json_id, status: "missing", path: s.drive.path || "", folder_url: s.drive.folder_url || "", scene_id: s.scene_id, doc_id: sceneDoc(s), collector: s.collector || "", n_queries: (s.queries || []).length });
+  // Read the new and changed scene.json files to show their IDs and catch problems before import.
+  const toRead = items.filter((i) => i.status === "new" || i.status === "changed");
+  let done = 0;
+  await pool(toRead, 3, async (it) => {
+    try {
+      const obj = await readSceneJson(it.scene_json_id);
+      it.scene_id = String(obj.scene_id ?? "").trim() || it.folder_title;
+      it.collector = it.person || String(obj.collector ?? ""); it.n_queries = Array.isArray(obj.queries) ? obj.queries.length : 0;
+      it.input_video = typeof obj.input_video === "string" ? obj.input_video : "";
+    } catch (e) {
+      if (e && FATAL.has(e.code)) throw e;
+      it.status = "error"; it.note = e && e.code === "tool_error" ? "Drive couldn't send this file." : `scene.json is ${e && e.message ? e.message : "unreadable"}`;
+    }
+    drive.phase = `Reading scene.json files: ${++done} of ${toRead.length}`; renderDrive();
+  });
+  // Two scenes can't share an ID; the one already in the registry keeps it.
+  const claimed = new Map();
+  for (const it of items) if ((it.status === "imported" || it.status === "changed") && it.doc_id) claimed.set(it.doc_id, it);
+  const matches = (it) => { const ex = byDoc.get(docIdFor(it.scene_id)); return ex && !(ex.drive && ex.drive.scene_json_id) && sameScene(ex, it) ? 0 : 1; };
+  const fresh = items.filter((i) => i.status === "new").sort((a, b) => matches(a) - matches(b) || String(a.scene_json_modified).localeCompare(String(b.scene_json_modified)) || String(a.path).localeCompare(String(b.path)));
+  for (const it of fresh) {
+    const id = docIdFor(it.scene_id);
+    if (!id) { it.status = "error"; it.note = "scene_id is empty"; continue; }
+    it.doc_id = id;
+    const other = claimed.get(id), ex = byDoc.get(id);
+    if (other) { it.status = "conflict"; it.note = `scene_id "${it.scene_id}" is also used by ${other.path || "another folder"}. Rename one of them.`; continue; }
+    if (ex && ex.drive && ex.drive.scene_json_id && onDrive.has(ex.drive.scene_json_id)) { it.status = "conflict"; it.note = `scene_id "${it.scene_id}" is already used by ${ex.drive.path || "another Drive folder"}. Rename one of them.`; continue; }
+    if (ex) it.note = ex.drive && ex.drive.scene_json_id ? `Replaces ${ex.drive.path || "a scene"}, which is gone from Drive.`
+      : sameScene(ex, it) ? `Already in the registry but not linked to Drive yet. Importing links it${ex.video_asset ? " and keeps its video" : ""}.` : "Replaces a registry scene with the same ID that didn't come from Drive.";
+    claimed.set(id, it);
+  }
+  // One row per person (each folder at the top of the Drive folder).
+  const tops = new Map();
+  for (const fo of folders.values()) if (fo.parent === DRIVE.root) tops.set(fo.id, { name: fo.title, url: folderUrl(fo.id), scenes: 0, new: 0, videos: 0, images: 0, scene_json: 0, files: 0, modified: fo.modified || "" });
+  for (const it of items) { const r = [...tops.values()].find((t) => t.name === it.person); if (!r || it.status === "missing") continue; r.scenes++; if (it.status === "new" || it.status === "changed") r.new++; }
+  for (const f of files.values()) {
+    const t = topOf(folders, f.parent); if (!t) continue;
+    const r = tops.get(t.id), k = kindOf(f);
+    r.files++; if (k === "video") r.videos++; else if (k === "image") r.images++; else if (k === "json") r.scene_json++;
+    if (f.modified > r.modified) r.modified = f.modified;
+  }
+  return { checked_at: new Date().toISOString(), root: DRIVE.root, root_url: folderUrl(DRIVE.root), n_folders: folders.size - 1, n_files: files.size,
+    counts: recount(items), items, folders: [...tops.values()].sort((a, b) => a.name.localeCompare(b.name)) };
+}
+async function saveMeta() {
+  if (!drive.canEdit || !drive.result) return false;
+  try { const db = await claude.use("db"); if (!db) return false; await db.doc("meta/sync").set(JSON.parse(JSON.stringify(drive.result))); return true; }
+  catch { return false; }
+}
+async function runCheck() {
+  if (drive.busy || !drive.mcp) return;
+  if (!state.loaded) { toast("The registry is still loading; try again in a moment"); return; }
+  drive.busy = true; drive.err = ""; drive.retries = 1; drive.phase = "Scanning Drive…"; render();
+  try {
+    const w = await walk();
+    drive.phase = "Comparing with the registry…"; renderDrive();
+    drive.result = await classify(w);
+    const c = drive.result.counts, n = c.new + c.changed;
+    if (!(await saveMeta()) && drive.canEdit) drive.err = "The check finished, but its results couldn't be saved for other viewers.";
+    toast(n ? `${n} new or updated scene${n === 1 ? "" : "s"} on Drive` : "Nothing new on Drive");
+  } catch (e) { drive.err = driveErrorText(e); }
+  finally { drive.busy = false; drive.phase = ""; render(); }
+}
+async function importOne(db, assets, it) {
+  const obj = await readSceneJson(it.scene_json_id);
+  for (const k of RESERVED) delete obj[k];
+  const sid = String(obj.scene_id ?? "").trim() || it.folder_title;
+  const linkedS = state.scenes.find((s) => s.drive && s.drive.scene_json_id === it.scene_json_id);
+  const id = linkedS ? sceneDoc(linkedS) : docIdFor(sid);
+  if (!id) throw new Error("scene_id is empty");
+  const ex = state.scenes.find((s) => sceneDoc(s) === id);
+  const goneIds = new Set((driveView()?.items || []).filter((i) => i.status === "missing").map((i) => i.key.slice(2)));
+  if (!linkedS && ex && ex.drive && ex.drive.scene_json_id && ex.drive.scene_json_id !== it.scene_json_id && !goneIds.has(ex.drive.scene_json_id))
+    throw new Error(`scene_id "${sid}" is already used by ${ex.drive.path || "another Drive folder"}`);
+  const prev = ex || {}, pd = prev.drive || {};
+  const person = it.person || String(obj.collector ?? "");
+  const same = !!linkedS || sameScene(prev, { collector: person, input_video: typeof obj.input_video === "string" ? obj.input_video : "" });
+  let thumb = same ? prev.thumb_asset || null : null;
+  if (it.thumb_id && assets && (!thumb || pd.thumb_id !== it.thumb_id || pd.thumb_modified !== it.thumb_modified)) {
+    try {
+      const r = await download(it.thumb_id); if (!r.bytes) throw new Error("no image data");
+      const type = String(it.thumb_mime || r.mime || "image/jpeg").split(";")[0].trim();
+      thumb = (await assets.upload(new Blob([r.bytes], { type }), { type })).id;
+    } catch (e) { if (e && FATAL.has(e.code)) throw e; it.thumb_note = "The thumbnail couldn't be copied."; }
+  }
+  const vids = (list) => (list || []).map((v) => v.id).sort().join(",");
+  const keepVideo = same && prev.video_asset && (!Array.isArray(pd.videos) || vids(pd.videos) === vids(it.video_files));
+  const norm = (v) => String(v ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (obj.collector && it.person && norm(obj.collector) !== norm(it.person)) obj.collector_as_written = obj.collector;
+  const doc = { ...obj, scene_id: sid, collector: person, drive: { folder_id: it.folder_id, folder_url: it.folder_url, path: it.path, person: it.person || "", scene_json_id: it.scene_json_id, modified: it.scene_json_modified,
+    thumb_id: it.thumb_id, thumb_modified: it.thumb_modified, videos: it.video_files || [], imported_at: new Date().toISOString() } };
+  if (thumb) doc.thumb_asset = thumb;
+  if (keepVideo) doc.video_asset = prev.video_asset;
+  await db.doc("scenes/" + id).set(JSON.parse(JSON.stringify(doc)));
+  Object.assign(it, { doc_id: id, scene_id: sid, collector: person, n_queries: Array.isArray(obj.queries) ? obj.queries.length : 0 });
+}
+async function importItems(keys) {
+  if (drive.busy || !drive.canEdit || !drive.mcp) return;
+  if (!drive.result && driveView()) drive.result = JSON.parse(JSON.stringify(driveView()));
+  const R = drive.result; if (!R) return;
+  const its = R.items.filter((i) => keys.includes(i.key) && (i.status === "new" || i.status === "changed"));
+  if (!its.length) return;
+  const db = await claude.use("db").catch(() => null), assets = await claude.use("assets").catch(() => null);
+  if (!db) { toast("The registry database isn't available in this view"); return; }
+  drive.busy = true; drive.err = ""; drive.retries = 1;
+  let ok = 0;
+  for (const [n, it] of its.entries()) {
+    drive.phase = `Importing ${n + 1} of ${its.length}: ${it.scene_id || it.path}`; drive.importing = it.key; renderDrive();
+    try { await importOne(db, assets, it); it.status = "imported"; it.note = it.thumb_note || ""; ok++; }
+    catch (e) {
+      if (e && FATAL.has(e.code)) { drive.err = driveErrorText(e); break; }
+      it.note = `Import failed: ${e && e.message ? e.message : e}`;
+    }
+  }
+  R.counts = recount(R.items);
+  await saveMeta();
+  drive.busy = false; drive.phase = ""; drive.importing = null;
+  toast(ok ? `Imported ${ok} scene${ok === 1 ? "" : "s"}` : "Nothing was imported");
+  render();
+}
+function renderDrive() {
+  const el = $("#dv"); if (!el || state.view !== "drive") return;
+  const R = driveView(), c = (R && R.counts) || {};
+  const canCheck = !!drive.mcp, canImport = canCheck && drive.canEdit;
+  const importable = R ? R.items.filter((i) => i.status === "new" || i.status === "changed") : [];
+  const waiting = state.scenes.filter((s) => s.drive && Array.isArray(s.drive.videos) && s.drive.videos.length && !s.video_asset).length;
+  const dis = drive.busy ? " disabled" : "";
+  const chips = R ? ST_ORDER.filter((k) => c[k]).map((k) => `<span class="tag ${ST[k][1]}">${c[k]} ${esc(ST[k][0].toLowerCase())}</span>`).join("") : "";
+  const status = R ? `Last checked ${esc(ago(R.checked_at))} <span class="faint">${esc(local(R.checked_at))}</span>`
+    : canCheck ? "Not checked yet. Check Drive lists every scene folder and marks the ones that aren't in the registry yet." : "Not checked yet.";
+  const rows = R ? R.items.slice().sort((a, b) => ST_ORDER.indexOf(a.status) - ST_ORDER.indexOf(b.status) || String(a.path).localeCompare(String(b.path))) : [];
+  const action = (i) => (i.status === "new" || i.status === "changed") && canImport ? `<button class="btn" type="button" data-act="import" data-key="${esc(i.key)}"${dis}>${drive.importing === i.key ? "Importing…" : "Import"}</button>`
+    : i.status === "imported" && i.scene_id && state.scenes.some((s) => s.scene_id === i.scene_id) ? `<a href="#scene-${esc(i.scene_id)}">Open</a>` : "";
+  el.innerHTML = `
+    <div class="card dv-head">
+      <div class="dv-top">
+        <div><h3>Google Drive</h3><div class="dv-sub"><a href="${folderUrl(DRIVE.root)}" target="_blank" rel="noopener">${esc(DRIVE.name)}</a> · each folder at the top is one person; loose files there are ignored</div></div>
+        <div class="d-actions">${canCheck ? `<button class="btn" type="button" data-act="check"${dis}>${icon("refresh", drive.busy ? "spin" : "")}${drive.busy ? "Working…" : "Check Drive"}</button>` : ""}${canImport && importable.length ? `<button class="btn primary" type="button" data-act="import-all"${dis}>Import ${importable.length} new</button>` : ""}</div>
+      </div>
+      <div class="dv-msg">${status}</div>
+      ${chips ? `<div class="chips">${chips}</div>` : ""}
+      ${drive.busy ? `<div class="dv-msg">${icon("refresh", "spin")}${esc(drive.phase)}</div>` : drive.err ? `<div class="dv-msg err">${esc(drive.err)}</div>` : ""}
+      ${waiting ? `<div class="dv-msg">${waiting} imported scene${waiting === 1 ? " has" : "s have"} no playable video yet. Ask Claude in Claude Code to make the playback copies.</div>` : ""}
+      ${!canCheck && R ? '<div class="dv-msg faint">Only people with Google Drive connected in claude.ai can run a new check.</div>' : ""}
+    </div>
+    ${R ? `<div><div class="sec-head"><h3>Scene folders</h3><span class="faint mono">${rows.filter((i) => i.status !== "missing").length}</span></div>
+      <div class="card dlist">${rows.map((i) => `<div class="drow">
+        <div class="drow-main">
+          <div class="drow-top"><span class="tag ${(ST[i.status] || ["", ""])[1]}">${esc((ST[i.status] || [i.status])[0])}</span>${i.folder_url ? `<a href="${esc(i.folder_url)}" target="_blank" rel="noopener">${esc(i.path || "(folder)")}</a>` : `<span>${esc(i.path || "")}</span>`}</div>
+          <div class="drow-meta">${[i.scene_id ? `<span class="mono">${esc(i.scene_id)}</span>` : "", esc(i.collector || ""), isNum(i.n_queries) ? plural(i.n_queries, "query", "queries") : "",
+            isNum(i.videos) ? plural(i.videos, "video") : "", isNum(i.images) ? plural(i.images, "photo") : "", i.modified ? `changed ${esc(local(i.modified))}` : ""].filter(Boolean).join('<span class="faint"> · </span>')}</div>
+          ${i.note ? `<div class="drow-note">${esc(i.note)}</div>` : ""}
+        </div>
+        <div class="drow-act">${action(i)}</div></div>`).join("")
+        || '<div class="empty">No scene folders yet. A folder shows up here once it holds a video or a scene.json.</div>'}</div></div>
+    ${(R.folders || []).length ? `<div><div class="sec-head"><h3>People</h3><span class="faint mono">${R.folders.length}</span></div>
+      <div class="card dlist">${R.folders.map((r) => `<div class="drow"><div class="drow-main">
+          <div class="drow-top"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a></div>
+          <div class="drow-meta">${isNum(r.scenes) && !r.scenes ? "No scene folders yet" : [isNum(r.scenes) ? plural(r.scenes, "scene folder") : "", r.new ? `<b>${r.new} new</b>` : "", plural(r.videos, "video"), plural(r.files, "file"), r.modified ? `changed ${esc(local(r.modified))}` : ""].filter(Boolean).join('<span class="faint"> · </span>')}</div>
+        </div></div>`).join("")}</div></div>` : ""}` : ""}`;
+}
+
+// ---------- export ----------
+async function copyText(t, ok) { try { await navigator.clipboard.writeText(t); toast(ok); } catch { toast("Copy was blocked; open scene.json and copy it by hand"); } }
+let dl;
+async function save(filename, data) {
+  if (dl === undefined) dl = await claude.use("downloads").catch(() => null);
+  if (!dl) { await copyText(data, `Downloads aren't available here; ${filename} was copied instead`); return; }
+  try { await dl.save({ filename, data }); toast(`Saved ${filename}`); }
+  catch (e) { if (e && e.code === "declined") return; await copyText(data, `Couldn't save ${filename}; copied it instead`); }
+}
+const cell = (v) => { const s = Array.isArray(v) ? v.join("; ") : v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+const HEAD = { query_id: "Question ID", scene_id: "Scene ID", collector: "PoC", metric_domain: "Metric Domain (Single-select)", challenges: "Associated Challenges (Multi-select)", robotics_link: "Connection to Real World Application / Robotics Failure Mode" };
+function exportCsv() {
+  const cols = ["query_id", "scene_id", "collector", "metric_domain", "challenges", "robotics_link", "kind", "definition", "point_a", "point_b", "point_c", "object", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "why_hard", "notes", "other_fields", "n_runs", "n_within_10pct"];
+  const rows = allQueries().map((x) => { const st = runStats(x.q), xs = extrasOf(x.q, KNOWN_Q); return { ...x.q, query_id: x.id, scene_id: x.s.scene_id, collector: x.s.collector, other_fields: xs.length ? Object.fromEntries(xs) : "", n_runs: st.n, n_within_10pct: st.within }; });
+  save("round2-queries.csv", [cols.map((c) => cell(HEAD[c] || c)).join(","), ...rows.map((r) => cols.map((c) => cell(r[c])).join(","))].join("\n"));
+}
+function exportJson() {
+  const scenes = state.scenes.map((s) => { const c = { ...s }; delete c.thumb_asset; delete c.video_asset; delete c.synced_at; return c; });
+  save("round2-scenes.json", JSON.stringify({ exported_at: new Date().toISOString(), scenes }, null, 2));
+}
+
+// ---------- routing ----------
+const VIEWS = ["scenes", "queries", "drive"];
+function route() {
+  const h = location.hash.replace(/^#/, "");
+  let view = VIEWS.includes(h) ? h : "scenes";
+  if (h.startsWith("scene-")) { view = "scenes"; let id = h.slice(6); try { id = decodeURIComponent(id); } catch { /* keep as typed */ } if (id !== state.sel) { state.sel = id; state.detailSig = null; } }
+  const moved = view !== state.view || state.detailSig === null;
+  const swap = () => {
+    state.view = view;
+    for (const v of VIEWS) $("#v-" + v).hidden = v !== view;
+    document.querySelectorAll(".seg a").forEach((a) => { if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    render();
+  };
+  if (moved && state.loaded && !reduced() && document.startViewTransition) document.startViewTransition(swap); else swap();
+}
+function render() {
+  renderChrome();
+  if (!state.sel && state.scenes.length) state.sel = state.scenes[0].scene_id;
+  renderRail();
+  if (state.view === "scenes") renderDetail();
+  else if (state.view === "queries") renderQueryTable();
+  else renderDrive();
+}
+function selectScene(id, opts = {}) {
+  if (!id) return;
+  if (!opts.keepQ) state.openQs.clear();
+  if (mobile()) closeSide();
+  if (location.hash === "#scene-" + id) { state.sel = id; route(); } else location.hash = "scene-" + id;
+  if (!opts.keepQ) window.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" });
+}
+
+// ---------- events ----------
+window.addEventListener("hashchange", route);
+matchMedia("(max-width: 900px)").addEventListener("change", () => { app.classList.remove("drawer"); applySide(); });
+$("#side-close").addEventListener("click", closeSide);
+$("#side-open").addEventListener("click", openSide);
+$("#scrim").addEventListener("click", closeSide);
+const onFilter = () => { renderRail(); if (state.view === "queries") renderQueryTable(); };
+$("#f-term").addEventListener("input", onFilter);
+$("#f-collector").addEventListener("input", onFilter);
+$("#check-drive").addEventListener("click", () => { if (state.view !== "drive") location.hash = "drive"; runCheck(); });
+$("#dv").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-act]"); if (!b || b.disabled) return;
+  if (b.dataset.act === "check") runCheck();
+  else if (b.dataset.act === "import") importItems([b.dataset.key]);
+  else if (b.dataset.act === "import-all") { const R = driveView(); if (R) importItems(R.items.filter((i) => i.status === "new" || i.status === "changed").map((i) => i.key)); }
+});
+$("#x-json").addEventListener("click", () => { $("#exp-menu").open = false; exportJson(); });
+$("#x-csv").addEventListener("click", () => { $("#exp-menu").open = false; exportCsv(); });
+document.addEventListener("click", (e) => { const m = $("#exp-menu"); if (m.open && !m.contains(e.target)) m.open = false; });
+$("#rail").addEventListener("click", (e) => { const b = e.target.closest(".item"); if (b) selectScene(b.dataset.sid); });
+$("#rail").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  const items = [...document.querySelectorAll("#rail .item")]; if (!items.length) return;
+  e.preventDefault();
+  let i = items.findIndex((b) => b.dataset.sid === state.sel); i = Math.max(0, Math.min(items.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
+  const id = items[i].dataset.sid;
+  state.openQs.clear(); location.hash = "scene-" + id;
+  requestAnimationFrame(() => { const b = document.querySelector(`#rail .item[data-sid="${CSS.escape(id)}"]`); if (b) { b.focus({ preventScroll: true }); b.scrollIntoView({ block: "nearest" }); } });
+});
+$("#detail").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-seek]"); if (b) { seekToFrame(+b.dataset.seek); return; }
+  const more = e.target.closest(".qc-more"); if (!more) return;
+  const q = more.closest(".qc"), id = q.dataset.qid, open = !q.classList.contains("open");
+  q.classList.toggle("open", open); more.setAttribute("aria-expanded", String(open));
+  if (open) state.openQs.add(id); else state.openQs.delete(id);
+});
+$("#q-table").addEventListener("click", (e) => {
+  const s = e.target.closest("button[data-sort]");
+  if (s) { const k = s.dataset.sort; state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : 1 }; renderQueryTable(); return; }
+  const tr = e.target.closest("tr[data-goto]"); if (!tr) return;
+  const x = allQueries().find((q) => q.id === tr.dataset.qid);
+  state.openQs = new Set([tr.dataset.qid]); state.scrollQ = tr.dataset.qid;
+  state.pendingSeek = x && Number.isInteger(x.q.frame_index) ? x.q.frame_index : null;
+  state.detailSig = null;
+  selectScene(tr.dataset.goto, { keepQ: true });
+});
+document.addEventListener("keydown", (e) => {
+  const typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName || "");
+  if (e.key === "/" && !typing) { e.preventDefault(); if (mobile() || collapsed) openSide(); $("#f-term").focus(); return; }
+  if (e.key === "Escape") {
+    if (document.activeElement === $("#f-term")) { $("#f-term").value = ""; onFilter(); $("#f-term").blur(); return; }
+    if (app.classList.contains("drawer")) { closeSide(); return; }
+  }
+  if (typing) return;
+  if ((e.key === "," || e.key === ".") && state.view === "scenes" && $("#v")) { e.preventDefault(); seekToFrame(Math.max(0, frameNow() + (e.key === "." ? 1 : -1))); return; }
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr.click")) { e.preventDefault(); e.target.click(); }
+});
+
+// ---------- boot ----------
+applySide();
+route();
+(async () => {
+  const db = await claude.use("db").catch(() => null);
+  if (!db) { state.db = "absent"; render(); return; }
+  const timer = setTimeout(() => { state.err = "The data can't be reached yet; it will appear when the connection comes back."; renderChrome(); }, 10000);
+  db.collection("scenes").onSnapshot((snap) => {
+    state.scenes = snap.docs.map((d) => { const o = { ...d.data(), scene_id: d.data()?.scene_id || d.id }; DOCID.set(o, d.id); return o; }).sort((a, b) => String(a.scene_id).localeCompare(String(b.scene_id)));
+    if (!snap.metadata.fromCache) { state.loaded = true; state.db = "live"; state.err = ""; clearTimeout(timer); }
+    else if (state.scenes.length) state.loaded = true;
+    render();
+  }, (err) => { clearTimeout(timer); state.loaded = true; state.err = err && err.code === "revoked" ? "Access to the data ended for this view." : "The data stopped updating. Reload the page to reconnect."; render(); });
+  db.doc("meta/sync").onSnapshot((d) => { state.meta = d.exists ? d.data() : null; renderChrome(); if (state.view === "drive") renderDrive(); }, () => {});
+})();
+(async () => {
+  // Check Drive runs on the viewer's own Google Drive connector; viewers without one just see the last saved check.
+  const [mcp, u] = await Promise.all([claude.use("mcp").catch(() => null), claude.use("user").catch(() => null)]);
+  drive.mcp = mcp;
+  drive.canEdit = !!(u && (await u.canEdit().catch(() => false)));
+  render();
+})();
+})();
+</script>

@@ -1,0 +1,1136 @@
+<title>Real2SimBench Scene Registry</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a metrology workbench — tape-measure band on top, summary first, dense tables below, one detail drawer. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --surface-2: #e9edf1;
+  --ink: #17212b;
+  --ink-2: #4a5866;
+  --ink-3: #6f7d8a;
+  --line: #d4dbe2;
+  --tape: #f2c230;
+  --tape-tick: #2b2410;
+  --accent: #b07d00;
+  --accent-soft: #fbefc7;
+  --link: #1f5e86;
+  --ok: #1d7a4b;
+  --ok-bg: #dff1e7;
+  --warn: #a65800;
+  --warn-bg: #fbead3;
+  --bad: #b3261e;
+  --bad-bg: #f9dedc;
+  --info: #2d5f8f;
+  --info-bg: #dde9f5;
+  --shadow: 0 1px 2px rgba(23, 33, 43, .06), 0 6px 24px rgba(23, 33, 43, .08);
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b; --surface: #161e26; --surface-2: #1d2731; --ink: #e5ecf2; --ink-2: #aab7c3; --ink-3: #7f8d9a;
+    --line: #2a3642; --tape: #e6b72a; --tape-tick: #2b2410; --accent: #f2c230; --accent-soft: #3a3115; --link: #84bde3;
+    --ok: #55c78f; --ok-bg: #173527; --warn: #f0a24e; --warn-bg: #3a2a16; --bad: #f2776f; --bad-bg: #3d1f1d;
+    --info: #8cb8e3; --info-bg: #1b2c3d; --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b; --surface: #161e26; --surface-2: #1d2731; --ink: #e5ecf2; --ink-2: #aab7c3; --ink-3: #7f8d9a;
+  --line: #2a3642; --tape: #e6b72a; --tape-tick: #2b2410; --accent: #f2c230; --accent-soft: #3a3115; --link: #84bde3;
+  --ok: #55c78f; --ok-bg: #173527; --warn: #f0a24e; --warn-bg: #3a2a16; --bad: #f2776f; --bad-bg: #3d1f1d;
+  --info: #8cb8e3; --info-bg: #1b2c3d; --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+a { color: var(--link); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.mono, code { font-family: var(--font-mono); font-size: .92em; }
+.num { font-variant-numeric: tabular-nums; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: .005em; }
+h2 { font-size: 1.45rem; font-weight: 600; }
+h3 { font-size: 1.1rem; font-weight: 600; }
+.eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; font-weight: 600; color: var(--ink-3); }
+.muted { color: var(--ink-2); }
+.small { font-size: .86rem; }
+
+/* masthead */
+.masthead { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.tape { height: 14px; background-color: var(--tape);
+  background-image: repeating-linear-gradient(90deg, var(--tape-tick) 0 1px, transparent 1px 8px), repeating-linear-gradient(90deg, var(--tape-tick) 0 1.5px, transparent 1.5px 40px);
+  background-size: 100% 5px, 100% 9px; background-repeat: repeat-x; }
+.head-row { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; padding-block: 10px 0; }
+.brand { display: flex; flex-direction: column; gap: 0; padding-bottom: 8px; }
+.brand h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+.tabs a { display: block; padding: 10px 14px 9px; text-decoration: none; color: var(--ink-2); font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; border-bottom: 3px solid transparent; white-space: nowrap; }
+.tabs a:hover { color: var(--ink); }
+.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+main { padding-block: 20px 56px; }
+.view { display: flex; flex-direction: column; gap: 20px; }
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; border-radius: var(--r); background: var(--accent-soft); color: var(--ink); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.notice.info { background: var(--info-bg); border-color: color-mix(in srgb, var(--info) 30%, transparent); }
+.notice.bad { background: var(--bad-bg); border-color: color-mix(in srgb, var(--bad) 30%, transparent); }
+.notice b { font-weight: 600; }
+.lede { max-width: 72ch; color: var(--ink-2); margin: 0; }
+
+/* stat strip */
+.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.stat { padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat .v { font-family: var(--font-display); font-size: 2rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .k { color: var(--ink-2); font-size: .85rem; }
+.stat.hard .v { color: var(--ok); }
+.stat.fix .v { color: var(--bad); }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat + .stat { border-left: 0; } .stat { border-top: 1px solid var(--line); } .stat:nth-child(-n+2) { border-top: 0; } .stat:nth-child(even) { border-left: 1px solid var(--line); } }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* verdict bar */
+.vbar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; background: var(--surface-2); }
+.vbar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .86rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.c-untested { background: var(--surface-2); outline: 1px solid var(--line); }
+.c-partial { background: var(--info); }
+.c-solved { background: var(--bad); }
+.c-hard { background: var(--ok); }
+
+/* bars */
+.bars { display: grid; grid-template-columns: minmax(0, max-content) minmax(60px, 1fr) 2.5em; gap: 6px 10px; align-items: center; }
+.bars .lab { font-size: .88rem; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { height: 10px; background: var(--surface-2); border-radius: 3px; overflow: hidden; display: flex; }
+.bars .fill { height: 100%; background: var(--ink-3); }
+.bars .fill.hard { background: var(--ok); }
+.bars .n { text-align: right; font-variant-numeric: tabular-nums; font-size: .88rem; }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th { text-align: left; font-family: var(--font-display); font-weight: 600; letter-spacing: .03em; color: var(--ink-2); font-size: .85rem; text-transform: uppercase; padding: 9px 10px; border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+tbody tr.row { cursor: pointer; }
+tbody tr.row:hover td { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+tbody tr.row[aria-expanded="true"] td { background: var(--surface-2); }
+td.def { min-width: 260px; max-width: 420px; }
+td .sub { color: var(--ink-3); font-size: .84rem; }
+.simple td, .simple th { padding: 7px 8px; }
+.simple th { position: static; }
+
+/* pills & chips */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 1px 9px; border-radius: 999px; font-size: .8rem; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.v-untested { color: var(--ink-2); background: var(--surface-2); border-color: var(--line); }
+.v-partial { color: var(--info); background: var(--info-bg); }
+.v-solved { color: var(--bad); background: var(--bad-bg); }
+.v-hard { color: var(--ok); background: var(--ok-bg); }
+.s-draft { color: var(--ink-2); background: var(--surface-2); border-color: var(--line); }
+.s-ready { color: var(--info); background: var(--info-bg); }
+.s-tested { color: var(--accent); background: var(--accent-soft); }
+.s-accepted { color: var(--ok); background: var(--ok-bg); }
+.s-rejected { color: var(--bad); background: var(--bad-bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: .76rem; padding: 0 7px; border-radius: 4px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; border: 1px solid var(--line); }
+.unc { font-size: .78rem; padding: 0 6px; border-radius: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.unc.ok { background: var(--ok-bg); color: var(--ok); }
+.unc.bad { background: var(--bad-bg); color: var(--bad); }
+.issue-n { display: inline-block; min-width: 1.6em; text-align: center; border-radius: 4px; font-size: .8rem; font-weight: 600; padding: 0 5px; }
+.issue-n.err { background: var(--bad-bg); color: var(--bad); }
+.issue-n.wrn { background: var(--warn-bg); color: var(--warn); }
+.demo-tag { font-size: .7rem; letter-spacing: .08em; font-weight: 600; text-transform: uppercase; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); padding: 0 5px; border-radius: 3px; }
+
+/* toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toolbar select, .toolbar input[type="search"] { padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); min-width: 0; }
+.toolbar input[type="search"] { flex: 1 1 220px; }
+.toolbar label.chk { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); font-size: .9rem; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 500; text-decoration: none; color: var(--ink); }
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.btn.primary:hover { opacity: .9; }
+.btn.small { padding: 4px 9px; font-size: .85rem; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.count-note { color: var(--ink-3); font-size: .86rem; }
+
+/* query detail */
+.qdetail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 28px; padding: 6px 2px 10px; }
+@media (max-width: 860px) { .qdetail { grid-template-columns: minmax(0, 1fr); } }
+dl.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+dl.kv dt { color: var(--ink-3); font-size: .85rem; }
+dl.kv dd { margin: 0; overflow-wrap: anywhere; }
+.issues { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.issues li { font-size: .88rem; padding-left: 18px; position: relative; }
+.issues li::before { content: ""; position: absolute; left: 3px; top: .55em; width: 8px; height: 8px; border-radius: 2px; }
+.issues li.need::before { background: var(--bad); }
+.issues li.tip::before { background: var(--warn); }
+.extras { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 14px; margin: 0; font-size: .88rem; }
+.extras dt { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-3); }
+.extras dd { margin: 0; overflow-wrap: anywhere; }
+.xrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: 6px; align-items: center; }
+.xrow input { padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); width: 100%; }
+.other-in { margin-top: 4px; }
+.gauge { display: block; }
+.res-table td, .res-table th { padding: 5px 8px; font-size: .85rem; }
+
+/* scenes grid */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; cursor: pointer; text-align: left; padding: 0; }
+.card:hover { box-shadow: var(--shadow); }
+.thumb { aspect-ratio: 9 / 12; width: 100%; max-width: 100%; object-fit: cover; background: var(--surface-2); display: block; }
+.thumb-ph { aspect-ratio: 9 / 12; display: flex; align-items: center; justify-content: center; color: var(--ink-3); background: var(--surface-2); font-size: .85rem; }
+.card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.card .sid { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .sum { font-size: .9rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mini-v { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+
+/* drawer */
+.drawer-back { position: fixed; inset: 0; background: rgba(10, 15, 20, .42); z-index: 20; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--bg); z-index: 21; overflow-y: auto; box-shadow: var(--shadow);
+  padding-top: max(16px, env(safe-area-inset-top, 0px)); padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.drawer-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.drawer-hero { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 600px) { .drawer-hero { grid-template-columns: minmax(0, 1fr); } .drawer-hero .player, .drawer-hero > img { max-width: 300px; } }
+.drawer-hero img { width: 100%; border-radius: var(--r); border: 1px solid var(--line); }
+.player { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.player video { width: 100%; max-width: 100%; aspect-ratio: 9 / 16; max-height: 72vh; background: #000; border-radius: var(--r); display: block; }
+.frame-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: .82rem; color: var(--ink-2); }
+.frame-bar .fr { color: var(--ink); font-weight: 500; min-width: 7.5em; font-variant-numeric: tabular-nums; }
+.card { position: relative; }
+.play-chip { position: absolute; top: 8px; left: 8px; background: rgba(10, 15, 20, .72); color: #fff; font-size: .74rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: .02em; }
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.qcard-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; }
+pre.json { margin: 0; max-height: 360px; overflow: auto; background: var(--surface-2); border-radius: var(--r); padding: 12px; font-family: var(--font-mono); font-size: .8rem; line-height: 1.45; white-space: pre; }
+
+/* builder */
+.bform { display: flex; flex-direction: column; gap: 18px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+@media (max-width: 720px) { .fgrid { grid-template-columns: minmax(0, 1fr); } }
+.f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.f.wide { grid-column: 1 / -1; }
+.f label { font-size: .84rem; color: var(--ink-2); font-weight: 500; }
+.f .hint { font-size: .78rem; color: var(--ink-3); }
+.f input[type="text"], .f input[type="number"], .f select, .f textarea { padding: 7px 9px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); width: 100%; }
+.f textarea { min-height: 64px; resize: vertical; }
+.f.req label::after { content: " *"; color: var(--bad); }
+.chkrow { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.chkrow label { display: inline-flex; gap: 5px; align-items: center; font-size: .86rem; color: var(--ink-2); }
+.bq { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.bq-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+.builder-cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 980px) { .builder-cols { grid-template-columns: minmax(0, 1fr); } }
+.side-sticky { position: sticky; top: 130px; display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 980px) { .side-sticky { position: static; } }
+.check-out { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 8px 10px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(20px, env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--surface); padding: 8px 14px; border-radius: var(--r); z-index: 30; font-size: .9rem; max-width: calc(100% - 32px); }
+.empty { padding: 28px 16px; text-align: center; color: var(--ink-2); }
+@media (prefers-reduced-motion: no-preference) { .card { transition: box-shadow .15s ease; } }
+</style>
+
+<header class="masthead">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="wrap head-row">
+    <div class="brand"><span class="eyebrow">Real2SimBench · Perception's Last Exam</span><h1>Scene Registry</h1></div>
+    <nav class="tabs" aria-label="Views">
+      <a href="#overview" data-view="overview">Overview</a>
+      <a href="#queries" data-view="queries">Queries</a>
+      <a href="#scenes" data-view="scenes">Scenes</a>
+      <a href="#builder" data-view="builder">Build scene.json</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="status-note" class="notice info" hidden></div>
+  <div id="demo-note" class="notice" hidden><span><b>Demo data.</b> These scenes reuse round-1 videos, but every measurement and model result is invented, to show how the registry will look. Real round-2 scenes will appear here once they are uploaded to Drive and synced.</span></div>
+
+  <section id="v-overview" class="view" hidden>
+    <p class="lede">Every scene and measurement collected for the benchmark. A model answer counts as <b>correct</b> when it is within 10% of the ground truth. A query is <b>accepted</b> only when every attempt of every top model misses.</p>
+    <div class="stats" id="stats"></div>
+    <div class="panel">
+      <div class="panel-head"><h3>Where the queries stand</h3><span class="count-note" id="req-note"></span></div>
+      <div class="vbar" id="vbar" role="img" aria-label="Queries by verdict"></div>
+      <div class="legend" id="vlegend"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="panel-head"><h3>By collector</h3></div><div class="tbl-wrap"><table class="simple" id="by-collector"></table></div></div>
+      <div class="panel"><div class="panel-head"><h3>By metric domain</h3><span class="count-note">green = accepted</span></div><div class="bars" id="by-domain"></div></div>
+      <div class="panel"><div class="panel-head"><h3>By measurement kind</h3></div><div class="bars" id="by-kind"></div></div>
+      <div class="panel"><div class="panel-head"><h3>By challenge</h3></div><div class="bars" id="by-challenge"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>On Google Drive</h3><span class="count-note">every folder under Second-Round-Data-Collection, with or without a scene.json</span></div>
+      <div class="tbl-wrap"><table class="simple" id="drive-folders"></table></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Data source and exports</h3></div>
+      <p class="muted small" style="margin:0" id="source-note"></p>
+      <div class="toolbar">
+        <button class="btn" id="exp-json" type="button">Download dataset.json</button>
+        <button class="btn" id="exp-qcsv" type="button">Download queries.csv</button>
+        <button class="btn" id="exp-scsv" type="button">Download scenes.csv</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-queries" class="view" hidden>
+    <div class="toolbar">
+      <input type="search" id="qf-search" placeholder="Search definitions, objects, IDs" aria-label="Search queries">
+      <select id="qf-collector" aria-label="Collector"></select>
+      <select id="qf-domain" aria-label="Metric domain"></select>
+      <select id="qf-kind" aria-label="Kind"></select>
+      <select id="qf-verdict" aria-label="Verdict"></select>
+      <label class="chk"><input type="checkbox" id="qf-issues"> Missing core fields only</label>
+    </div>
+    <div class="count-note" id="q-count"></div>
+    <div class="tbl-wrap"><table id="q-table"></table></div>
+  </section>
+
+  <section id="v-scenes" class="view" hidden>
+    <div class="toolbar">
+      <input type="search" id="sf-search" placeholder="Search scenes" aria-label="Search scenes">
+      <select id="sf-collector" aria-label="Collector"></select>
+      <select id="sf-status" aria-label="Status"></select>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="v-builder" class="view" hidden>
+    <p class="lede">Optional helper. Describe a scene and its measurements, then copy or download <code>scene.json</code> and drop it next to your video in your own folder under <code>Second-Round-Data-Collection/&lt;your name&gt;/</code>. Any folder layout works, and any field can be left out or added. Only a definition, a ground-truth number and a unit are needed before a model answer can be scored. Device, resolution and frame rate are filled in later by the kit. Your draft is kept in this browser.</p>
+    <div class="builder-cols">
+      <form class="bform" id="bform" novalidate></form>
+      <aside class="side-sticky">
+        <div class="panel">
+          <div class="panel-head"><h3>Checks</h3><span id="b-check-sum" class="count-note"></span></div>
+          <ul class="issues" id="b-issues"></ul>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>scene.json</h3></div>
+          <div class="toolbar">
+            <button class="btn primary" type="button" id="b-copy">Copy JSON</button>
+            <button class="btn" type="button" id="b-download">Download</button>
+            <button class="btn" type="button" id="b-reset">Start over</button>
+          </div>
+          <div class="toolbar">
+            <select id="b-load" aria-label="Load a scene from the registry"></select>
+            <button class="btn small" type="button" id="b-load-btn">Load</button>
+          </div>
+          <details>
+            <summary class="small muted">Paste existing JSON</summary>
+            <div class="f" style="margin-top:8px"><textarea id="b-paste" aria-label="Paste scene.json" placeholder='{"schema": "r2s-scene/0.1", ...}'></textarea></div>
+            <div class="toolbar" style="margin-top:6px"><button class="btn small" type="button" id="b-paste-btn">Load pasted JSON</button></div>
+          </details>
+          <pre class="json" id="b-json"></pre>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<div id="drawer-back" class="drawer-back" hidden></div>
+<aside id="drawer" class="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="drawer-title"></aside>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(() => {
+"use strict";
+
+// ---------- schema ----------
+const SCHEMA = "r2s-scene/0.1";
+const THRESH = 0.10;           // correct = |rel error| <= 10%
+const UNC_MAX = 0.025;         // GT uncertainty must be <= 2.5% of the value
+const MIN_ATTEMPTS = 2;
+const REQUIRED = [
+  { model: "gpt-6.1-sol", harness: "codex", label: "GPT-6.1 Sol · Codex" },
+  { model: "claude-opus-5-5", harness: "claude-code", label: "Opus 5.5 · Claude Code" },
+];
+const E = {
+  environment: ["home", "office", "kitchen", "outdoor", "lab", "store", "other"],
+  status: ["draft", "ready", "tested", "accepted", "rejected"],
+  metric_domain: ["rigid_distance", "deformable_distance", "liquid_volume", "object_weight", "robot_state", "temperature", "material_composition", "image_frame", "camera"],
+  kind: ["distance", "extent", "gap", "height_above", "angle", "path_length", "volume", "mass", "declared", "px_distance", "px_area", "focal_length"],
+  gt_unit: ["mm", "cm", "m", "mL", "g", "kg", "degC", "deg", "px", "percent"],
+  challenges: ["occlusion", "clutter_stacking", "fast_or_shaky_camera", "low_light", "zoom_or_lens", "reflection_mirror", "transparency", "dynamic_scene", "imagined_state", "long_context", "physical_gap", "fit_affordance", "deformable", "small_or_thin", "irregular_shape", "color", "other"],
+  lens: ["0.5x", "1x", "2x", "3x", "5x", "other"],
+  stabilization: ["off", "standard", "enhanced", "action", "unknown"],
+};
+const LABEL = {
+  rigid_distance: "Rigid distance", deformable_distance: "Deformable distance", liquid_volume: "Liquid volume", object_weight: "Object weight",
+  robot_state: "Robot state", temperature: "Temperature", material_composition: "Material composition", image_frame: "Image frame (2D)", camera: "Camera",
+  distance: "Distance A→B", extent: "Extent", gap: "Gap", height_above: "Height above", angle: "Angle", path_length: "Path length", volume: "Volume",
+  mass: "Mass", declared: "Declared property", px_distance: "Pixel distance", px_area: "Pixel area", focal_length: "Focal length",
+  occlusion: "occlusion", clutter_stacking: "clutter / stacking", fast_or_shaky_camera: "fast / shaky camera", low_light: "low light", zoom_or_lens: "zoom / lens",
+  reflection_mirror: "mirror / reflection", transparency: "transparency", dynamic_scene: "dynamic scene", imagined_state: "imagined state", long_context: "long context",
+  physical_gap: "physical gap", fit_affordance: "fit / affordance", deformable: "deformable", small_or_thin: "small / thin", irregular_shape: "irregular shape", color: "color", other: "other",
+};
+const KIND = {
+  distance: { needs: ["point_a", "point_b"], unit: "length" },
+  extent: { needs: ["object"], unit: "length" },
+  gap: { needs: ["point_a", "point_b"], unit: "length" },
+  height_above: { needs: ["point_a", "object"], unit: "length" },
+  angle: { needs: ["point_a", "point_b", "point_c"], unit: "angle" },
+  path_length: { needs: ["object"], unit: "length" },
+  volume: { needs: ["object"], unit: "volume" },
+  mass: { needs: ["object"], unit: "mass" },
+  declared: { needs: ["object"], unit: "any" },
+  px_distance: { needs: ["point_a", "point_b", "frame_index"], unit: "px" },
+  px_area: { needs: ["object", "frame_index"], unit: "px" },
+  focal_length: { needs: ["frame_index"], unit: "px" },
+};
+const UNIT_CLASS = { mm: "length", cm: "length", m: "length", mL: "volume", g: "mass", kg: "mass", degC: "temperature", deg: "angle", px: "px", percent: "fraction" };
+const VERDICT = {
+  untested: { label: "Not run", cls: "v-untested", bar: "c-untested" },
+  partial: { label: "Partly run", cls: "v-partial", bar: "c-partial" },
+  solved: { label: "Solved by a model", cls: "v-solved", bar: "c-solved" },
+  hard: { label: "Accepted (hard)", cls: "v-hard", bar: "c-hard" },
+};
+const FIELD_LABEL = { point_a: "point A", point_b: "point B", point_c: "point C", object: "object", frame_index: "frame index" };
+// Fields the page knows how to show. Anything else a collector adds is kept and shown under "Other fields".
+const KNOWN_SCENE = new Set(["schema", "demo", "scene_id", "collector", "status", "environment", "summary", "scope", "origin", "x_axis", "dynamic", "input_video", "device", "resolution", "fps", "duration_s", "n_frames", "capture", "calibration_video", "evidence_dir", "queries", "notes", "drive", "thumb_asset", "video_asset", "synced_at"]);
+const KNOWN_Q = new Set(["query_id", "metric_domain", "kind", "point_a", "point_b", "point_c", "object", "definition", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "challenges", "robotics_link", "why_hard", "pilot", "results", "notes"]);
+const extrasOf = (obj, known) => Object.entries(obj || {}).filter(([k]) => !known.has(k));
+const showVal = (v) => (typeof v === "string" ? v : JSON.stringify(v));
+
+// ---------- helpers ----------
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const lab = (k) => LABEL[k] || k || "—";
+const isNum = (v) => typeof v === "number" && Number.isFinite(v);
+const fmt = (v) => {
+  if (!isNum(v)) return "—";
+  const a = Math.abs(v);
+  if (a >= 10000) return Math.round(v).toLocaleString("en-US");
+  if (a >= 100) return (Math.round(v * 10) / 10).toString();
+  if (a >= 1) return (Math.round(v * 100) / 100).toString();
+  return (Math.round(v * 1000) / 1000).toString();
+};
+const pct = (x, d = 1) => (isNum(x) ? (x * 100).toFixed(d) + "%" : "—");
+const sPct = (x) => (isNum(x) ? (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x * 100).toFixed(1) + "%" : "—");
+let toastTimer = 0;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), 2600); }
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } };
+
+// ---------- domain logic ----------
+function relErr(pred, gt) { return isNum(pred) && isNum(gt) && gt !== 0 ? (pred - gt) / Math.abs(gt) : null; }
+function verdictOf(q) {
+  const res = Array.isArray(q.results) ? q.results : [];
+  if (!res.length || !isNum(q.gt_value)) return { key: "untested", best: null, n: res.length };
+  let best = null, anyCorrect = false;
+  const per = {};
+  for (const r of res) {
+    const e = relErr(r.predicted, q.gt_value);
+    if (e === null) continue;
+    if (best === null || Math.abs(e) < Math.abs(best)) best = e;
+    if (Math.abs(e) <= THRESH + 1e-12) anyCorrect = true;
+    const k = r.model + "|" + r.harness; per[k] = (per[k] || 0) + 1;
+  }
+  if (anyCorrect) return { key: "solved", best, n: res.length };
+  const complete = REQUIRED.every((m) => (per[m.model + "|" + m.harness] || 0) >= MIN_ATTEMPTS);
+  return { key: complete ? "hard" : "partial", best, n: res.length };
+}
+// Two levels only. "need": the core fields every query must have — metric domain, associated challenges, the
+// real-world / robotics connection, and a definition, value and unit to score against. "tip": advice; never blocks.
+// Custom values (a new kind, domain, unit, challenge) are welcome and only get a tip.
+function validateScene(s) {
+  const out = [];
+  const add = (sev, where, msg) => out.push({ sev, where, msg });
+  const tipIfMissing = { scope: "Say what the model should rebuild (scope)", origin: "Name a physical point for (0,0,0)", x_axis: "Say which way +X points", input_video: "Point to the input video" };
+  for (const [k, msg] of Object.entries(tipIfMissing)) if (!String(s[k] ?? "").trim()) add("tip", "scene", msg);
+  if (!String(s.collector ?? "").trim()) add("tip", "scene", "Add your name as collector");
+  if (s.environment && !E.environment.includes(s.environment)) add("tip", "scene", `Custom environment "${s.environment}"`);
+  const qs = Array.isArray(s.queries) ? s.queries : [];
+  if (!qs.length) add("tip", "scene", "No measurements yet");
+  const seen = new Set();
+  qs.forEach((q, i) => {
+    const w = q.query_id || `query ${i + 1}`;
+    if (q.query_id) { if (seen.has(q.query_id)) add("tip", w, "Another query has the same ID"); seen.add(q.query_id); }
+    const ks = KIND[q.kind];
+    if (q.kind && !ks) add("tip", w, `Custom kind "${q.kind}": say in the definition exactly how the number is computed from a 3D scene`);
+    if (!q.kind) add("tip", w, "Pick a kind, or write your own, so the evaluator knows how to compute it");
+    if (!String(q.metric_domain ?? "").trim()) add("need", w, "Needs a metric domain");
+    else if (!E.metric_domain.includes(q.metric_domain)) add("tip", w, `Custom domain "${q.metric_domain}"`);
+    if (!(Array.isArray(q.challenges) && q.challenges.length)) add("need", w, "Needs at least one associated challenge (pick one or type your own)");
+    if (!String(q.robotics_link ?? "").trim()) add("need", w, "Needs the connection to a real-world application or robotics failure mode");
+    if (ks) {
+      for (const f of ks.needs) {
+        if (f === "frame_index") { if (!Number.isInteger(q.frame_index) || q.frame_index < 0) add("tip", w, `${lab(q.kind)} usually needs a frame index`); }
+        else if (!String(q[f] ?? "").trim()) add("tip", w, `${lab(q.kind)} usually names ${FIELD_LABEL[f]}`);
+      }
+      const uc = UNIT_CLASS[q.gt_unit];
+      if (q.gt_unit && uc && ks.unit !== "any" && uc !== ks.unit) add("tip", w, `Unit ${q.gt_unit} is unusual for ${lab(q.kind)}`);
+      if (q.kind === "focal_length" && !s.calibration_video) add("tip", w, "Focal-length ground truth usually needs a calibration video");
+    }
+    if (!String(q.definition ?? "").trim()) add("need", w, "Needs a definition of what the number is");
+    if (!isNum(q.gt_value)) add("need", w, "Needs a ground-truth value");
+    if (!String(q.gt_unit ?? "").trim()) add("need", w, "Needs a unit");
+    if (!isNum(q.gt_uncertainty)) add("tip", w, "Add the measurement uncertainty (±)");
+    else if (isNum(q.gt_value) && q.gt_value !== 0) {
+      const r = q.gt_uncertainty / Math.abs(q.gt_value);
+      if (r > UNC_MAX) add("tip", w, `Uncertainty is ${pct(r)} of the value. Above ${pct(UNC_MAX)}, measurement noise can decide pass/fail at the 10% threshold`);
+    }
+    if (isNum(s.n_frames) && Number.isInteger(q.frame_index) && q.frame_index >= s.n_frames) add("tip", w, `Frame ${q.frame_index} is past the last frame (${s.n_frames - 1})`);
+    if (!String(q.how_measured ?? "").trim()) add("tip", w, "Say how it was measured");
+    if (!String(q.why_hard ?? "").trim()) add("tip", w, "Say why top models should miss it");
+  });
+  return out;
+}
+
+// ---------- state ----------
+const state = { scenes: [], loaded: false, dbState: "connecting", meta: null, view: "overview", openQ: null, drawerScene: null };
+let derived = { queries: [], issuesBy: new Map() };
+
+function derive() {
+  const queries = [], issuesBy = new Map();
+  for (const s of state.scenes) {
+    const iss = validateScene(s);
+    issuesBy.set(s.scene_id, iss);
+    (s.queries || []).forEach((q, i) => {
+      const id = q.query_id || `${s.scene_id}-?${i + 1}`;
+      const qi = iss.filter((x) => x.where === q.query_id);
+      queries.push({ s, q, id, v: verdictOf(q), issues: qi });
+    });
+  }
+  derived = { queries, issuesBy };
+}
+
+// ---------- routing ----------
+const VIEWS = ["overview", "queries", "scenes", "builder"];
+function route() {
+  const h = (location.hash || "").replace(/^#/, "");
+  let view = VIEWS.includes(h) ? h : "overview", openScene = null;
+  if (h.startsWith("scene-")) { view = "scenes"; openScene = h.slice(6); }
+  state.view = view;
+  for (const v of VIEWS) $("#v-" + v).hidden = v !== view;
+  document.querySelectorAll(".tabs a").forEach((a) => { if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  renderView();
+  if (openScene) openDrawer(openScene); else if (!$("#drawer").hidden && !h.startsWith("scene-")) closeDrawer(false);
+}
+
+// ---------- rendering: overview ----------
+function countBy(list, keyFn) {
+  const m = new Map();
+  for (const x of list) for (const k of [].concat(keyFn(x))) { if (!k) continue; const e = m.get(k) || { n: 0, hard: 0 }; e.n++; if (x.v.key === "hard") e.hard++; m.set(k, e); }
+  return [...m.entries()].sort((a, b) => b[1].n - a[1].n);
+}
+function barsHtml(entries) {
+  if (!entries.length) return '<div class="muted small" style="grid-column:1/-1">Nothing yet.</div>';
+  const max = Math.max(...entries.map(([, e]) => e.n));
+  return entries.map(([k, e]) => `<div class="lab" title="${esc(lab(k))}">${esc(lab(k))}</div>
+    <div class="track"><span class="fill hard" style="width:${(e.hard / max) * 100}%"></span><span class="fill" style="width:${((e.n - e.hard) / max) * 100}%"></span></div>
+    <div class="n">${e.n}</div>`).join("");
+}
+function renderOverview() {
+  const qs = derived.queries, scenes = state.scenes;
+  const collectors = new Set(scenes.map((s) => s.collector).filter(Boolean));
+  const hard = qs.filter((x) => x.v.key === "hard").length;
+  const fix = qs.filter(needsFix).length;
+  $("#stats").innerHTML = [
+    ["Scenes", scenes.length, ""], ["Queries", qs.length, ""], ["Collectors", collectors.size, ""],
+    ["Accepted (hard)", hard, "hard"], ["Missing core fields", fix, "fix"],
+  ].map(([k, v, c]) => `<div class="stat ${c}"><span class="v">${v}</span><span class="k">${k}</span></div>`).join("");
+  $("#req-note").textContent = `Accepted = ${MIN_ATTEMPTS}+ attempts each from ${REQUIRED.map((r) => r.label).join(" and ")}, all off by more than 10%`;
+  const order = ["hard", "solved", "partial", "untested"];
+  const cnt = Object.fromEntries(order.map((k) => [k, qs.filter((x) => x.v.key === k).length]));
+  const tot = qs.length || 1;
+  $("#vbar").innerHTML = order.map((k) => cnt[k] ? `<span class="${VERDICT[k].bar}" style="width:${(cnt[k] / tot) * 100}%" title="${VERDICT[k].label}: ${cnt[k]}"></span>` : "").join("");
+  $("#vbar").setAttribute("aria-label", order.map((k) => `${VERDICT[k].label} ${cnt[k]}`).join(", "));
+  $("#vlegend").innerHTML = order.map((k) => `<span><i class="${VERDICT[k].bar}"></i>${VERDICT[k].label} <b class="num">${cnt[k]}</b></span>`).join("");
+  // by collector
+  const rows = [...collectors].sort().map((c) => {
+    const ss = scenes.filter((s) => s.collector === c), qq = qs.filter((x) => x.s.collector === c);
+    return `<tr><td>${esc(c)}</td><td class="num">${ss.length}</td><td class="num">${qq.length}</td><td class="num">${qq.filter((x) => x.v.key === "hard").length}</td><td class="num">${qq.filter((x) => x.v.key === "solved").length}</td><td class="num">${qq.filter(needsFix).length}</td></tr>`;
+  }).join("");
+  $("#by-collector").innerHTML = `<thead><tr><th>Collector</th><th>Scenes</th><th>Queries</th><th>Accepted</th><th>Solved</th><th>Missing core</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="muted">No collectors yet.</td></tr>'}</tbody>`;
+  renderDriveFolders();
+  $("#by-domain").innerHTML = barsHtml(countBy(qs, (x) => x.q.metric_domain));
+  $("#by-kind").innerHTML = barsHtml(countBy(qs, (x) => x.q.kind));
+  $("#by-challenge").innerHTML = barsHtml(countBy(qs, (x) => x.q.challenges || []).slice(0, 12));
+  const m = state.meta;
+  $("#source-note").innerHTML = m && m.synced_at
+    ? `Synced from Google Drive (<span class="mono">${esc(m.root || "team folder")}</span>) on ${esc(new Date(m.synced_at).toLocaleString())}: ${esc(m.found ?? "?")} scene.json files, ${esc(m.imported ?? "?")} imported${m.errors && m.errors.length ? `, ${m.errors.length} could not be read` : ""}.`
+    : "Collectors put scene folders with a scene.json on Google Drive; Claude syncs them into this registry. Exports include every scene shown here.";
+}
+
+function renderDriveFolders() {
+  const f = state.meta && Array.isArray(state.meta.folders) ? state.meta.folders : null;
+  const t = $("#drive-folders");
+  if (!f) { t.innerHTML = '<tbody><tr><td class="muted">Not synced from Drive yet. After people upload, ask Claude to sync the registry.</td></tr></tbody>'; return; }
+  const rows = f.map((r) => `<tr><td>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a>` : esc(r.name)}</td>
+    <td class="num">${esc(r.videos ?? 0)}</td><td class="num">${esc(r.images ?? 0)}</td><td class="num">${esc(r.files ?? 0)}</td>
+    <td class="num">${esc(r.scene_json ?? 0)}</td><td class="sub">${r.modified ? esc(new Date(r.modified).toLocaleDateString()) : ""}</td></tr>`).join("");
+  t.innerHTML = `<thead><tr><th>Folder</th><th>Videos</th><th>Photos</th><th>All files</th><th>scene.json</th><th>Last change</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="muted">The folder is empty.</td></tr>'}</tbody>`;
+}
+
+// ---------- rendering: queries ----------
+function fillSelect(sel, label, values, labeler = lab) {
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${esc(label)}</option>` + values.map((v) => `<option value="${esc(v)}">${esc(labeler(v))}</option>`).join("");
+  if (values.includes(cur)) sel.value = cur;
+}
+function uncBadge(q) {
+  if (!isNum(q.gt_uncertainty) || !isNum(q.gt_value) || q.gt_value === 0) return "";
+  const r = q.gt_uncertainty / Math.abs(q.gt_value);
+  return `<span class="unc ${r <= UNC_MAX ? "ok" : "bad"}" title="Uncertainty as a share of the value">±${pct(r)}</span>`;
+}
+function gtText(q) { return isNum(q.gt_value) ? `${fmt(q.gt_value)} ${esc(q.gt_unit || "")}${isNum(q.gt_uncertainty) ? ` <span class="sub">± ${fmt(q.gt_uncertainty)}</span>` : ""}` : '<span class="sub">not measured</span>'; }
+function whatText(q) {
+  const parts = [];
+  if (q.point_a) parts.push(`<b>A</b> ${esc(q.point_a)}`);
+  if (q.point_b) parts.push(`<b>B</b> ${esc(q.point_b)}`);
+  if (q.point_c) parts.push(`<b>C</b> ${esc(q.point_c)}`);
+  if (q.object) parts.push(`<b>Object</b> ${esc(q.object)}`);
+  const at = [q.moment ? `moment: ${esc(q.moment)}` : "", Number.isInteger(q.frame_index) ? `frame ${q.frame_index}` : ""].filter(Boolean).join(" · ");
+  return `${esc(q.definition || "")}<div class="sub">${parts.join(" · ")}${at ? " · " + at : ""}</div>`;
+}
+function issueBadge(iss) {
+  const e = iss.filter((i) => i.sev === "need").length, w = iss.length - e;
+  return (e ? `<span class="issue-n err" title="${e} core fields missing">${e}</span> ` : "") + (w ? `<span class="issue-n wrn" title="${w} suggestions">${w}</span>` : "") || '<span class="sub">—</span>';
+}
+function extrasHtml(obj, known) {
+  const xs = extrasOf(obj, known);
+  return xs.length ? `<dl class="extras">${xs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(showVal(v))}</dd>`).join("")}</dl>` : "";
+}
+const needsFix = (x) => x.issues.some((i) => i.sev === "need");
+const valuesOf = (known, seen) => [...known.filter((k) => seen.has(k)), ...[...seen].filter((k) => k && !known.includes(k)).sort()];
+function gaugeSvg(q) {
+  const W = 220, H = 30, pad = 8, span = 0.5;
+  const x = (e) => pad + ((Math.max(-span, Math.min(span, e)) + span) / (2 * span)) * (W - 2 * pad);
+  const marks = (q.results || []).map((r) => {
+    const e = relErr(r.predicted, q.gt_value); if (e === null) return "";
+    const cx = x(e), isGpt = r.model.startsWith("gpt");
+    const shape = isGpt ? `<circle cx="${cx}" cy="12" r="4.5" fill="var(--ink)"/>` : `<rect x="${cx - 4}" y="${8}" width="8" height="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.6"/>`;
+    return `<g><title>${esc(r.model)} attempt ${esc(r.attempt)}: ${sPct(e)}</title>${shape}</g>`;
+  }).join("");
+  return `<svg class="gauge" width="${W}" height="${H + 12}" viewBox="0 0 ${W} ${H + 12}" role="img" aria-label="Relative error of each attempt">
+    <rect x="${x(-THRESH)}" y="2" width="${x(THRESH) - x(-THRESH)}" height="20" fill="var(--ok-bg)"/>
+    <line x1="${pad}" y1="22" x2="${W - pad}" y2="22" stroke="var(--line)"/>
+    <line x1="${x(0)}" y1="2" x2="${x(0)}" y2="22" stroke="var(--ink-3)" stroke-dasharray="2 2"/>
+    ${[-0.5, -0.1, 0, 0.1, 0.5].map((t) => `<text x="${x(t)}" y="${H + 8}" font-size="9" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace">${t === 0 ? "0" : (t > 0 ? "+" : "−") + Math.abs(t * 100) + "%"}</text>`).join("")}
+    ${marks}</svg>`;
+}
+function resultsHtml(q) {
+  const res = q.results || [];
+  if (!res.length) return '<p class="muted small" style="margin:0">No model runs yet.</p>';
+  const rows = res.map((r) => {
+    const e = relErr(r.predicted, q.gt_value), ok = e !== null && Math.abs(e) <= THRESH;
+    return `<tr><td>${esc(r.model)}<div class="sub">${esc(r.harness)} · ${esc(r.effort || "")}</div></td><td class="num">${esc(r.attempt)}</td><td class="num">${fmt(r.predicted)}</td><td class="num">${sPct(e)}</td><td>${ok ? '<span class="pill v-solved">within 10%</span>' : '<span class="pill v-hard">missed</span>'}</td></tr>`;
+  }).join("");
+  return `${gaugeSvg(q)}<div class="sub small">● GPT-6.1 Sol &nbsp; ▢ Opus 5.5 &nbsp; shaded band = within 10%</div>
+    <div class="tbl-wrap"><table class="res-table"><thead><tr><th>Model</th><th>Try</th><th>Predicted</th><th>Error</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function issuesList(iss) { return iss.length ? `<ul class="issues">${iss.map((i) => `<li class="${i.sev}">${esc(i.msg)}</li>`).join("")}</ul>` : '<p class="muted small" style="margin:0">No problems found.</p>'; }
+function queryDetail(x) {
+  const q = x.q, s = x.s;
+  return `<div class="qdetail">
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+      <dl class="kv">
+        <dt>Definition</dt><dd>${esc(q.definition)}</dd>
+        ${q.point_a ? `<dt>Point A</dt><dd>${esc(q.point_a)}</dd>` : ""}${q.point_b ? `<dt>Point B</dt><dd>${esc(q.point_b)}</dd>` : ""}${q.point_c ? `<dt>Point C</dt><dd>${esc(q.point_c)}</dd>` : ""}
+        ${q.object ? `<dt>Object</dt><dd>${esc(q.object)}</dd>` : ""}${q.moment ? `<dt>Moment</dt><dd>${esc(q.moment)}</dd>` : ""}
+        ${Number.isInteger(q.frame_index) ? `<dt>Frame</dt><dd class="num">${q.frame_index}${isNum(s.n_frames) ? ` of ${s.n_frames}` : ""}</dd>` : ""}
+        <dt>Ground truth</dt><dd>${gtText(q)} ${uncBadge(q)}</dd>
+        <dt>How measured</dt><dd>${esc(q.how_measured || "—")}</dd>
+        <dt>Evidence</dt><dd>${(q.evidence || []).map((e) => `<span class="mono">${esc(e)}</span>`).join(", ") || "—"}</dd>
+        <dt>Robotics link</dt><dd>${esc(q.robotics_link || "—")}</dd>
+        <dt>Why hard</dt><dd>${esc(q.why_hard || "—")}</dd>
+        ${q.notes ? `<dt>Notes</dt><dd>${esc(q.notes)}</dd>` : ""}
+      </dl>
+      ${extrasOf(q, KNOWN_Q).length ? `<div><div class="eyebrow" style="margin-bottom:4px">Other fields</div>${extrasHtml(q, KNOWN_Q)}</div>` : ""}
+      <div><div class="eyebrow" style="margin-bottom:4px">Checks</div>${issuesList(x.issues)}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="eyebrow">Model results</div>${resultsHtml(q)}
+      <div class="toolbar">${s.video_asset ? `<button class="btn small" type="button" data-goto="${esc(s.scene_id)}"${Number.isInteger(q.frame_index) ? ` data-frame="${q.frame_index}"` : ""}>${Number.isInteger(q.frame_index) ? `Play video at frame ${q.frame_index}` : "Play the video"}</button>` : ""}<a href="#scene-${esc(s.scene_id)}">Open scene ${esc(s.scene_id)}</a></div>
+    </div></div>`;
+}
+function renderQueries() {
+  const qs = derived.queries;
+  fillSelect($("#qf-collector"), "All collectors", [...new Set(qs.map((x) => x.s.collector).filter(Boolean))].sort(), (v) => v);
+  fillSelect($("#qf-domain"), "All domains", valuesOf(E.metric_domain, new Set(qs.map((x) => x.q.metric_domain))));
+  fillSelect($("#qf-kind"), "All kinds", valuesOf(E.kind, new Set(qs.map((x) => x.q.kind))));
+  fillSelect($("#qf-verdict"), "Any verdict", Object.keys(VERDICT), (k) => VERDICT[k].label);
+  const term = $("#qf-search").value.trim().toLowerCase(), c = $("#qf-collector").value, d = $("#qf-domain").value,
+    k = $("#qf-kind").value, v = $("#qf-verdict").value, onlyIss = $("#qf-issues").checked;
+  const list = qs.filter((x) => (!c || x.s.collector === c) && (!d || x.q.metric_domain === d) && (!k || x.q.kind === k) && (!v || x.v.key === v)
+    && (!onlyIss || needsFix(x))
+    && (!term || [x.id, x.q.definition, x.q.point_a, x.q.point_b, x.q.point_c, x.q.object, x.s.summary, x.q.notes, ...extrasOf(x.q, KNOWN_Q).map(([, v]) => showVal(v))].join(" ").toLowerCase().includes(term)));
+  $("#q-count").textContent = `${list.length} of ${qs.length} queries`;
+  if (!qs.length) { $("#q-table").innerHTML = `<tbody><tr><td class="empty">${emptyText()}</td></tr></tbody>`; return; }
+  const body = list.map((x) => {
+    const open = state.openQ === x.id;
+    const demo = x.s.demo ? ' <span class="demo-tag">demo</span>' : "";
+    return `<tr class="row" data-q="${esc(x.id)}" tabindex="0" aria-expanded="${open}">
+      <td class="mono" style="white-space:nowrap">${esc(x.id)}${demo}</td><td style="white-space:nowrap">${esc(x.s.collector)}</td>
+      <td style="white-space:nowrap">${esc(lab(x.q.metric_domain))}<div class="sub">${esc(lab(x.q.kind))}</div></td>
+      <td class="def">${whatText(x.q)}</td>
+      <td class="num" style="white-space:nowrap">${gtText(x.q)}<div>${uncBadge(x.q)}</div></td>
+      <td><div class="chips">${(x.q.challenges || []).map((ch) => `<span class="chip">${esc(lab(ch))}</span>`).join("") || '<span class="sub">—</span>'}</div></td>
+      <td class="def" style="min-width:200px;max-width:300px">${x.q.robotics_link ? esc(x.q.robotics_link) : '<span class="sub">—</span>'}</td>
+      <td><span class="pill ${VERDICT[x.v.key].cls}">${VERDICT[x.v.key].label}</span>${x.v.best !== null ? `<div class="sub num">closest ${sPct(x.v.best)}</div>` : ""}</td>
+      <td>${issueBadge(x.issues)}</td></tr>
+      ${open ? `<tr class="detail"><td colspan="9">${queryDetail(x)}</td></tr>` : ""}`;
+  }).join("");
+  $("#q-table").innerHTML = `<thead><tr><th>Query</th><th>Collector</th><th>Metric domain</th><th>What is measured</th><th>Ground truth</th><th>Associated challenges</th><th>Real-world connection</th><th>Verdict</th><th>Checks</th></tr></thead><tbody>${body || '<tr><td colspan="9" class="empty">No queries match these filters.</td></tr>'}</tbody>`;
+}
+
+// ---------- rendering: scenes ----------
+function thumbHtml(s, cls = "thumb") {
+  return s.thumb_asset ? `<img class="${cls}" src="/_blob/${encodeURIComponent(s.thumb_asset)}" alt="Frame from ${esc(s.scene_id)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-ph',textContent:'No preview'}))">`
+    : '<div class="thumb-ph">No preview</div>';
+}
+function miniVerdict(s) {
+  const qq = derived.queries.filter((x) => x.s === s), n = qq.length || 1;
+  return `<div class="mini-v" title="${qq.length} queries">${["hard", "solved", "partial", "untested"].map((k) => { const c = qq.filter((x) => x.v.key === k).length; return c ? `<span class="${VERDICT[k].bar}" style="width:${(c / n) * 100}%"></span>` : ""; }).join("")}</div>`;
+}
+function renderScenes() {
+  const ss = state.scenes;
+  fillSelect($("#sf-collector"), "All collectors", [...new Set(ss.map((s) => s.collector).filter(Boolean))].sort(), (v) => v);
+  fillSelect($("#sf-status"), "Any status", E.status.filter((st) => ss.some((s) => s.status === st)), (v) => v);
+  const term = $("#sf-search").value.trim().toLowerCase(), c = $("#sf-collector").value, st = $("#sf-status").value;
+  const list = ss.filter((s) => (!c || s.collector === c) && (!st || s.status === st) && (!term || [s.scene_id, s.summary, s.scope, s.collector].join(" ").toLowerCase().includes(term)));
+  if (!ss.length) { $("#cards").innerHTML = `<div class="empty" style="grid-column:1/-1">${emptyText()}</div>`; return; }
+  $("#cards").innerHTML = list.map((s) => {
+    const iss = derived.issuesBy.get(s.scene_id) || [];
+    return `<button class="card" type="button" data-scene="${esc(s.scene_id)}">${thumbHtml(s)}${s.video_asset ? '<span class="play-chip" aria-label="Has video">▶ video</span>' : ""}
+      <div class="card-body"><div class="card-top"><span class="sid">${esc(s.scene_id)}</span><span class="pill s-${esc(s.status || "draft")}">${esc(s.status || "draft")}</span></div>
+      <div class="sum">${esc(s.summary || s.scope || "")}</div>
+      <div class="sub small muted">${esc(s.collector || "")} · ${esc(s.environment || "")} · ${(s.queries || []).length} queries ${issueBadge(iss)}</div>
+      ${miniVerdict(s)}</div></button>`;
+  }).join("") || '<div class="empty" style="grid-column:1/-1">No scenes match these filters.</div>';
+}
+
+// ---------- drawer ----------
+function seekToFrame(f) {
+  const v = $("#drawer-video"); if (!v || !Number.isInteger(f)) return;
+  const fps = Number(v.dataset.fps) || 30;
+  const go = () => { v.pause(); v.currentTime = Math.min((f + 0.5) / fps, Math.max(0, (v.duration || Infinity) - 0.5 / fps)); v.scrollIntoView({ block: "nearest" }); };
+  if (v.readyState >= 1) go(); else v.addEventListener("loadedmetadata", go, { once: true });
+}
+function wireVideo(fps) {
+  const v = $("#drawer-video"); if (!v) return;
+  const fr = $("#fr"), ft = $("#ft");
+  const frameAt = (t) => Math.max(0, Math.floor(t * fps + 1e-6));
+  const show = (t) => { fr.textContent = `frame ${frameAt(t)}`; ft.textContent = `${t.toFixed(2)} s`; };
+  if ("requestVideoFrameCallback" in v) { const cb = (_now, meta) => { show(meta.mediaTime); v.requestVideoFrameCallback(cb); }; v.requestVideoFrameCallback(cb); }
+  v.addEventListener("timeupdate", () => show(v.currentTime));
+  v.addEventListener("seeked", () => show(v.currentTime));
+  v.addEventListener("error", () => { const n = $("#player-note"); n.textContent = "This video can't be played in this browser."; n.hidden = false; });
+  $("#fr-prev").onclick = () => seekToFrame(Math.max(0, frameAt(v.currentTime) - 1));
+  $("#fr-next").onclick = () => seekToFrame(frameAt(v.currentTime) + 1);
+}
+function openDrawer(id, force = false) {
+  const s = state.scenes.find((x) => x.scene_id === id);
+  if (!s) { if (state.loaded) toast(`Scene ${id} is not in the registry`); return; }
+  const sig = JSON.stringify(s);
+  // Don't rebuild an open drawer (and restart its video) when nothing about the scene changed.
+  if (!force && !$("#drawer").hidden && state.drawerScene === id && state.drawerSig === sig) { applyPendingSeek(id); return; }
+  state.drawerScene = id; state.drawerSig = sig;
+  const fps = Number(s.fps) || 30;
+  const iss = derived.issuesBy.get(s.scene_id) || [];
+  const sceneIss = iss.filter((i) => i.where === "scene");
+  const qx = derived.queries.filter((x) => x.s === s);
+  const cap = s.capture || {};
+  const drive = s.drive || {};
+  const clean = { ...s }; delete clean.thumb_asset; delete clean.drive; delete clean.synced_at;
+  $("#drawer").innerHTML = `
+    <div class="drawer-head"><div><div class="eyebrow">${esc(s.collector || "")} · ${esc(s.environment || "")}${s.demo ? ' · <span class="demo-tag">demo</span>' : ""}</div><h2 id="drawer-title" class="mono" style="font-family:var(--font-mono);font-size:1.15rem">${esc(s.scene_id)}</h2></div>
+      <button class="btn small" type="button" id="drawer-close">Close</button></div>
+    <div class="drawer-hero">${s.video_asset ? `<div class="player">
+        <video id="drawer-video" data-fps="${fps}" controls playsinline muted preload="metadata"${s.thumb_asset ? ` poster="/_blob/${encodeURIComponent(s.thumb_asset)}"` : ""} src="/_blob/${encodeURIComponent(s.video_asset)}" aria-label="Video of ${esc(s.scene_id)}"></video>
+        <div class="frame-bar"><button class="btn small" type="button" id="fr-prev" aria-label="Previous frame">◀</button><span class="fr" id="fr">frame 0</span><button class="btn small" type="button" id="fr-next" aria-label="Next frame">▶</button><span id="ft">0.00 s</span></div>
+        <div class="sub small">Playback copy: 720p, no audio, ${fps} fps. Frame numbers match the normalized video to within one frame.</div>
+        <div class="notice bad small" id="player-note" hidden></div></div>`
+      : s.thumb_asset ? `<img src="/_blob/${encodeURIComponent(s.thumb_asset)}" alt="Frame from ${esc(s.scene_id)}">` : '<div class="thumb-ph">No preview</div>'}
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <p style="margin:0">${esc(s.summary || "")}</p>
+        <dl class="kv small">
+          <dt>Status</dt><dd><span class="pill s-${esc(s.status || "draft")}">${esc(s.status || "draft")}</span></dd>
+          <dt>Scope</dt><dd>${esc(s.scope || "—")}</dd>
+          <dt>Origin</dt><dd>${esc(s.origin || "—")}</dd>
+          <dt>+X axis</dt><dd>${esc(s.x_axis || "—")} · +Z up</dd>
+          <dt>Video</dt><dd><span class="mono">${esc(s.input_video || "—")}</span>${s.duration_s ? ` · ${fmt(s.duration_s)} s` : ""}${s.fps ? ` · ${esc(s.fps)} fps` : ""}${Array.isArray(s.resolution) ? ` · ${esc(s.resolution.join("×"))}` : ""}${isNum(s.n_frames) ? ` · ${s.n_frames} frames` : ""}</dd>
+          <dt>Device</dt><dd>${esc(s.device || "—")} · lens ${esc(cap.lens || "?")}${cap.zoom_changes ? " · zoom changes" : ""} · stabilization ${esc(cap.stabilization || "?")}${cap.hdr ? " · HDR" : ""}</dd>
+          ${cap.notes ? `<dt>Capture notes</dt><dd>${esc(cap.notes)}</dd>` : ""}
+          ${s.notes ? `<dt>Notes</dt><dd>${esc(s.notes)}</dd>` : ""}
+          <dt>Drive</dt><dd>${drive.folder_url ? `<a href="${esc(drive.folder_url)}" target="_blank" rel="noopener">Open scene folder</a>${drive.path ? ` <span class="sub mono">${esc(drive.path)}</span>` : ""}` : '<span class="muted">not synced from Drive yet</span>'}</dd>
+        </dl>
+        ${extrasOf(s, KNOWN_SCENE).length ? `<div><div class="eyebrow" style="margin-bottom:4px">Other fields</div>${extrasHtml(s, KNOWN_SCENE)}</div>` : ""}
+        ${sceneIss.length ? `<div>${issuesList(sceneIss)}</div>` : ""}
+      </div></div>
+    <h3>Queries</h3>
+    ${qx.map((x) => `<div class="qcard"><div class="qcard-head"><span class="mono small">${esc(x.id)}</span><span style="display:flex;gap:8px;align-items:center">${s.video_asset && Number.isInteger(x.q.frame_index) ? `<button class="btn small" type="button" data-seek="${x.q.frame_index}">Show frame ${x.q.frame_index}</button>` : ""}<span class="pill ${VERDICT[x.v.key].cls}">${VERDICT[x.v.key].label}</span></span></div>
+      <div>${whatText(x.q)}</div>
+      <div class="small"><span class="muted">${esc(lab(x.q.metric_domain))} · ${esc(lab(x.q.kind))}</span> · GT ${gtText(x.q)} ${uncBadge(x.q)}</div>
+      ${x.q.notes ? `<div class="small"><span class="muted">Notes:</span> ${esc(x.q.notes)}</div>` : ""}
+      ${extrasHtml(x.q, KNOWN_Q)}
+      ${x.q.results && x.q.results.length ? gaugeSvg(x.q) : ""}
+      ${x.issues.length ? issuesList(x.issues) : ""}</div>`).join("") || '<p class="muted">No queries.</p>'}
+    <div class="toolbar"><button class="btn" type="button" id="drawer-copy">Copy scene.json</button><button class="btn" type="button" id="drawer-edit">Edit in builder</button></div>
+    <pre class="json">${esc(JSON.stringify(clean, null, 2))}</pre>`;
+  const wasOpen = !$("#drawer").hidden;
+  $("#drawer").hidden = false; $("#drawer-back").hidden = false;
+  $("#drawer-close").onclick = () => closeDrawer(true);
+  $("#drawer-copy").onclick = () => copyText(JSON.stringify(clean, null, 2), "scene.json copied");
+  $("#drawer-edit").onclick = () => { builderLoad(clean); closeDrawer(false); location.hash = "builder"; };
+  wireVideo(fps);
+  if (!wasOpen) $("#drawer-close").focus();
+  applyPendingSeek(id);
+}
+function applyPendingSeek(id) {
+  if (state.pendingSeek && state.pendingSeek.sid === id) { const f = state.pendingSeek.frame; state.pendingSeek = null; seekToFrame(f); }
+}
+function closeDrawer(updateHash) {
+  const v = $("#drawer-video"); if (v) v.pause();
+  $("#drawer").innerHTML = "";
+  $("#drawer").hidden = true; $("#drawer-back").hidden = true; state.drawerScene = null; state.drawerSig = null;
+  if (updateHash && location.hash.startsWith("#scene-")) location.hash = "scenes";
+}
+
+// ---------- copy / download ----------
+async function copyText(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); toast(okMsg); }
+  catch { toast("Copy was blocked; select the JSON text and copy it by hand"); }
+}
+let downloadsNs;
+async function saveFile(filename, data) {
+  if (downloadsNs === undefined) downloadsNs = await claude.use("downloads").catch(() => null);
+  if (!downloadsNs) { await copyText(data, `Downloads aren't available here; ${filename} was copied instead`); return; }
+  try { await downloadsNs.save({ filename, data }); toast(`Saved ${filename}`); }
+  catch (e) {
+    if (e && e.code === "declined") return;
+    if (e && e.code === "rate_limited") { toast("Another save is still open; try again in a moment"); return; }
+    await copyText(data, `Couldn't save ${filename}; copied it instead`);
+  }
+}
+const csvCell = (v) => { const s = Array.isArray(v) ? v.join("; ") : v === null || v === undefined ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+function toCsv(rows, cols, headers = {}) { return [cols.map((c) => csvCell(headers[c] || c)).join(","), ...rows.map((r) => cols.map((c) => csvCell(r[c])).join(","))].join("\n"); }
+// The first six query columns use the Round-2 spreadsheet's own headers, so the CSV pastes straight into it.
+const SHEET_HEADERS = { query_id: "Question ID", scene_id: "Scene ID", collector: "PoC", metric_domain: "Metric Domain (Single-select)",
+  challenges: "Associated Challenges (Multi-select)", robotics_link: "Connection to Real World Application / Robotics Failure Mode" };
+function cleanScene(s) { const c = { ...s }; delete c.thumb_asset; delete c.synced_at; return c; }
+function exportJson() { saveFile("real2sim-dataset.json", JSON.stringify({ schema: SCHEMA, exported_at: new Date().toISOString(), scenes: state.scenes.map(cleanScene) }, null, 2)); }
+function exportQueriesCsv() {
+  const cols = ["query_id", "scene_id", "collector", "metric_domain", "challenges", "robotics_link", "environment", "kind", "point_a", "point_b", "point_c", "object", "definition", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "uncertainty_pct", "how_measured", "evidence", "why_hard", "notes", "other_fields", "verdict", "n_results", "closest_rel_error", "n_core_missing", "n_tips", "demo"];
+  const rows = derived.queries.map((x) => ({ ...x.q, query_id: x.id, scene_id: x.s.scene_id, collector: x.s.collector, environment: x.s.environment,
+    uncertainty_pct: isNum(x.q.gt_uncertainty) && isNum(x.q.gt_value) && x.q.gt_value ? ((x.q.gt_uncertainty / Math.abs(x.q.gt_value)) * 100).toFixed(2) : "",
+    other_fields: extrasOf(x.q, KNOWN_Q).length ? JSON.stringify(Object.fromEntries(extrasOf(x.q, KNOWN_Q))) : "",
+    verdict: VERDICT[x.v.key].label, n_results: x.v.n, closest_rel_error: x.v.best === null ? "" : (x.v.best * 100).toFixed(1) + "%",
+    challenges: (x.q.challenges || []).map(lab), metric_domain: lab(x.q.metric_domain),
+    n_core_missing: x.issues.filter((i) => i.sev === "need").length, n_tips: x.issues.filter((i) => i.sev === "tip").length, demo: x.s.demo ? "yes" : "" }));
+  saveFile("real2sim-queries.csv", toCsv(rows, cols, SHEET_HEADERS));
+}
+function exportScenesCsv() {
+  const cols = ["scene_id", "collector", "status", "environment", "summary", "scope", "origin", "x_axis", "dynamic", "input_video", "device", "resolution", "fps", "duration_s", "n_frames", "lens", "zoom_changes", "stabilization", "hdr", "capture_app", "calibration_video", "notes", "other_fields", "n_queries", "drive_folder", "demo"];
+  const rows = state.scenes.map((s) => ({ ...s, resolution: Array.isArray(s.resolution) ? s.resolution.join("x") : "", lens: s.capture?.lens, zoom_changes: s.capture?.zoom_changes,
+    other_fields: extrasOf(s, KNOWN_SCENE).length ? JSON.stringify(Object.fromEntries(extrasOf(s, KNOWN_SCENE))) : "",
+    stabilization: s.capture?.stabilization, hdr: s.capture?.hdr, capture_app: s.capture?.app, n_queries: (s.queries || []).length, drive_folder: s.drive?.folder_url || "", demo: s.demo ? "yes" : "" }));
+  saveFile("real2sim-scenes.csv", toCsv(rows, cols));
+}
+
+// ---------- builder ----------
+const DRAFT_KEY = "r2s-builder-draft-v1";
+const blankQuery = (sid, n) => ({ query_id: sid ? `${sid}-q${n}` : "", metric_domain: "", kind: "", point_a: "", point_b: "", point_c: "", object: "", definition: "", moment: "", frame_index: null,
+  gt_value: null, gt_unit: "", gt_uncertainty: null, how_measured: "", evidence: [], challenges: [], robotics_link: "", why_hard: "", pilot: [], results: [] });
+const blankScene = () => ({ schema: SCHEMA, scene_id: "", collector: "", status: "draft", environment: "", summary: "", scope: "", origin: "", x_axis: "", dynamic: false,
+  input_video: "input/", capture: { lens: "1x", zoom_changes: false, stabilization: "off", hdr: false, app: "iOS Camera", notes: "" }, calibration_video: null, evidence_dir: "evidence/", queries: [blankQuery("", 1)] });
+let draft = (() => { try { const d = JSON.parse(lsGet(DRAFT_KEY) || "null"); return d && typeof d === "object" ? d : blankScene(); } catch { return blankScene(); } })();
+let sampleNs;
+
+function draftOut() {
+  const o = JSON.parse(JSON.stringify(draft));
+  delete o.drive; delete o.thumb_asset; delete o.synced_at;
+  return o;
+}
+function inp(id, label, value, opts = {}) {
+  const { type = "text", hint = "", wide = false, req = false, ph = "" } = opts;
+  return `<div class="f${wide ? " wide" : ""}${req ? " req" : ""}"><label for="${id}">${esc(label)}</label><input type="${type}" id="${id}" value="${esc(value ?? "")}" placeholder="${esc(ph)}"${type === "number" ? ' step="any"' : ""}>${hint ? `<span class="hint">${esc(hint)}</span>` : ""}</div>`;
+}
+function area(id, label, value, opts = {}) {
+  const { hint = "", req = false, ph = "" } = opts;
+  return `<div class="f wide${req ? " req" : ""}"><label for="${id}">${esc(label)}</label><textarea id="${id}" placeholder="${esc(ph)}">${esc(value ?? "")}</textarea>${hint ? `<span class="hint">${esc(hint)}</span>` : ""}</div>`;
+}
+function sel(id, label, value, options, opts = {}) {
+  const { labeler = lab, req = false, hint = "", blank = "Choose…", other = true } = opts;
+  const custom = other && value && !options.includes(value);
+  return `<div class="f${req ? " req" : ""}"><label for="${id}">${esc(label)}</label><select id="${id}">${blank !== null ? `<option value="">${esc(blank)}</option>` : ""}${options.map((o) => `<option value="${esc(o)}"${o === value ? " selected" : ""}>${esc(labeler(o))}</option>`).join("")}${other ? `<option value="__other__"${custom ? " selected" : ""}>Other…</option>` : ""}</select>${other ? `<input type="text" class="other-in" id="${id}--other" value="${esc(custom ? value : "")}" placeholder="Type your own" aria-label="${esc(label)}, your own value"${custom ? "" : " hidden"}>` : ""}${hint ? `<span class="hint">${esc(hint)}</span>` : ""}</div>`;
+}
+// Builder-only list of "other fields" rows, so half-typed rows survive re-renders. Keyed "scene" or query index.
+let xui = {};
+function parseVal(v) {
+  const t = String(v).trim();
+  if (/^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(t)) return Number(t);
+  if (t === "true" || t === "false") return t === "true";
+  if (/^[[{]/.test(t)) { try { return JSON.parse(t); } catch { /* keep as text */ } }
+  return v;
+}
+function xrowsHtml(key, prefix) {
+  const rows = xui[key] || [];
+  return `<div class="f wide"><label>Other fields</label><span class="hint">Anything else worth recording: a second ground-truth reading, lighting notes, a link. Numbers and true/false are stored as such.</span>
+    <div style="display:flex;flex-direction:column;gap:6px">${rows.map(([k, v], j) => `<div class="xrow"><input type="text" id="${prefix}-x${j}-k" data-xkey="${key}" data-xj="${j}" data-xpart="k" value="${esc(k)}" placeholder="field name" aria-label="Field name"><input type="text" id="${prefix}-x${j}-v" data-xkey="${key}" data-xj="${j}" data-xpart="v" value="${esc(v)}" placeholder="value" aria-label="Field value"><button class="btn small" type="button" data-act="rmx" data-xkey="${key}" data-xj="${j}">Remove</button></div>`).join("")}</div>
+    <div><button class="btn small" type="button" data-act="addx" data-xkey="${key}">Add a field</button></div></div>`;
+}
+function applyExtras(key) {
+  const obj = key === "scene" ? draft : draft.queries[+key]; if (!obj) return;
+  const known = key === "scene" ? KNOWN_SCENE : KNOWN_Q;
+  for (const [k] of extrasOf(obj, known)) delete obj[k];
+  for (const [k, v] of xui[key] || []) { const kk = String(k).trim(); if (kk && !known.has(kk)) obj[kk] = parseVal(v); }
+}
+function buildXui() {
+  xui = { scene: extrasOf(draft, KNOWN_SCENE).map(([k, v]) => [k, showVal(v)]) };
+  (draft.queries || []).forEach((q, i) => { xui[i] = extrasOf(q, KNOWN_Q).map(([k, v]) => [k, showVal(v)]); });
+}
+function queryForm(q, i) {
+  const ks = KIND[q.kind] || { needs: [] };
+  const need = (f) => ks.needs.includes(f);
+  const p = `b-q${i}`;
+  return `<div class="bq" data-qi="${i}">
+    <div class="bq-head"><h3>Query ${i + 1}</h3><div class="toolbar">${sampleNs ? `<button class="btn small" type="button" data-act="check" data-qi="${i}">Check wording with Claude</button>` : ""}<button class="btn small" type="button" data-act="remove" data-qi="${i}">Remove</button></div></div>
+    <div class="fgrid">
+      ${inp(`${p}-query_id`, "Query ID", q.query_id, { hint: "<scene_id>-q<N>; filled in for you" })}
+      ${sel(`${p}-metric_domain`, "Metric domain (pick one)", q.metric_domain, E.metric_domain, { req: true })}
+      <div class="f wide req"><label>Associated challenges (pick all that apply)</label><div class="chkrow">${E.challenges.map((c) => `<label><input type="checkbox" id="${p}-ch-${c}" data-ch="${c}"${(q.challenges || []).includes(c) ? " checked" : ""}> ${esc(lab(c))}</label>`).join("")}</div>
+        <input type="text" class="other-in" id="${p}-ch_other" value="${esc((q.challenges || []).filter((c) => !E.challenges.includes(c)).join(", "))}" placeholder="Your own challenges, comma-separated" aria-label="Your own challenges"></div>
+      ${area(`${p}-robotics_link`, "Connection to real-world application / robotics failure mode", q.robotics_link, { req: true, ph: "e.g. A robot that misjudges this gap by 1 cm will hit the box when it reaches for the tape measure." })}
+      ${sel(`${p}-kind`, "Kind (how the number is computed)", q.kind, E.kind)}
+      ${inp(`${p}-moment`, "Moment (dynamic scenes)", q.moment, { ph: "start / end / after the 2nd fold" })}
+      ${area(`${p}-definition`, "Definition", q.definition, { req: true, ph: "straight-line distance from A to B" })}
+      ${inp(`${p}-point_a`, "Point A", q.point_a, { req: need("point_a"), wide: true, ph: "tip of the metal hook of the pink tape measure" })}
+      ${inp(`${p}-point_b`, "Point B", q.point_b, { req: need("point_b"), wide: true })}
+      ${q.kind === "angle" || q.point_c ? inp(`${p}-point_c`, "Point C", q.point_c, { req: need("point_c"), wide: true }) : ""}
+      ${inp(`${p}-object`, "Object", q.object, { req: need("object"), wide: true })}
+      ${need("frame_index") || Number.isInteger(q.frame_index) ? inp(`${p}-frame_index`, "Frame index", Number.isInteger(q.frame_index) ? q.frame_index : "", { type: "number", req: need("frame_index"), hint: "frame number in the normalized video" }) : ""}
+      ${inp(`${p}-gt_value`, "Ground-truth value", isNum(q.gt_value) ? q.gt_value : "", { type: "number", req: true })}
+      ${sel(`${p}-gt_unit`, "Unit", q.gt_unit, E.gt_unit, { req: true, labeler: (v) => v })}
+      ${inp(`${p}-gt_uncertainty`, "Uncertainty (±, same unit)", isNum(q.gt_uncertainty) ? q.gt_uncertainty : "", { type: "number", req: true, hint: "must be ≤ 2.5% of the value" })}
+      ${inp(`${p}-evidence`, "Evidence files", (q.evidence || []).join(", "), { hint: "comma-separated, e.g. evidence/q1_tape.jpg" })}
+      ${area(`${p}-how_measured`, "How it was measured", q.how_measured, { req: true, ph: "steel tape hooked on A, read at B; 3 readings" })}
+      ${inp(`${p}-why_hard`, "Why top models should miss it", q.why_hard, { wide: true })}
+      ${area(`${p}-notes`, "Notes", q.notes, { ph: "Anything else about this measurement" })}
+      ${xrowsHtml(String(i), p)}
+    </div>
+    <div class="check-out" id="${p}-check" hidden></div>
+  </div>`;
+}
+function renderBuilder() {
+  const s = draft, c = s.capture || (s.capture = {});
+  $("#bform").innerHTML = `
+    <div class="panel"><div class="panel-head"><h3>Scene</h3></div><div class="fgrid">
+      ${inp("b-scene_id", "Scene ID", s.scene_id, { req: true, hint: "<you>-s<NN>, e.g. yuzhou-s03; also the Drive folder name" })}
+      ${inp("b-collector", "Collector", s.collector, { req: true })}
+      ${sel("b-environment", "Environment", s.environment, E.environment, { req: true })}
+      ${sel("b-status", "Status", s.status, E.status, { labeler: (v) => v, blank: null })}
+      ${area("b-summary", "Summary", s.summary, { ph: "What is in the scene and what happens in it" })}
+      ${inp("b-scope", "Scope (what the model must rebuild)", s.scope, { req: true, wide: true, ph: "the desk top and every object on it" })}
+      ${inp("b-origin", "Origin (0,0,0)", s.origin, { req: true, ph: "back-left corner of the desk top" })}
+      ${inp("b-x_axis", "+X direction (+Z is up)", s.x_axis, { req: true, ph: "along the desk's back edge, toward the right" })}
+      ${inp("b-input_video", "Input video", s.input_video, { req: true, hint: "path inside the scene folder, e.g. input/IMG_1601.MOV" })}
+      ${inp("b-calibration_video", "Calibration video (optional)", s.calibration_video || "", { ph: "calibration/checkerboard.MOV" })}
+      ${sel("b-lens", "Lens", c.lens, E.lens, { labeler: (v) => v })}
+      ${sel("b-stabilization", "Stabilization", c.stabilization, E.stabilization, { labeler: (v) => v })}
+      ${inp("b-app", "Capture app", c.app)}
+      <div class="f"><label>Flags</label><div class="chkrow"><label><input type="checkbox" id="b-zoom_changes"${c.zoom_changes ? " checked" : ""}> zoom changes</label><label><input type="checkbox" id="b-hdr"${c.hdr ? " checked" : ""}> HDR on</label><label><input type="checkbox" id="b-dynamic"${s.dynamic ? " checked" : ""}> dynamic scene</label></div></div>
+      ${inp("b-notes", "Capture notes", c.notes, { wide: true })}
+      ${area("b-scene_notes", "Notes", s.notes, { ph: "Anything else about this scene" })}
+      ${xrowsHtml("scene", "b-s")}
+    </div></div>
+    ${(s.queries || []).map(queryForm).join("")}
+    <div><button class="btn" type="button" data-act="add">Add query</button></div>`;
+  refreshBuilderSide();
+}
+function refreshBuilderSide() {
+  const out = draftOut();
+  const iss = validateScene(out);
+  const e = iss.filter((i) => i.sev === "need").length;
+  $("#b-check-sum").textContent = iss.length ? `${e} core fields missing · ${iss.length - e} suggestions` : "all clear";
+  $("#b-issues").innerHTML = (iss.length ? iss.map((i) => `<li class="${i.sev}"><span class="mono small">${esc(i.where)}</span> ${esc(i.msg)}</li>`).join("") : '<li class="muted small" style="padding-left:0">Nothing missing. Download it and put it in your Drive scene folder.</li>')
+    + '<li class="muted small" style="padding-left:0;margin-top:6px">Red items are the core fields every query needs: metric domain, associated challenges, the real-world connection, and a definition, value and unit. Amber items are suggestions; leave out anything that does not fit your scene.</li>';
+  $("#b-json").textContent = JSON.stringify(out, null, 2);
+  lsSet(DRAFT_KEY, JSON.stringify(draft));
+  const loadSel = $("#b-load");
+  const ids = state.scenes.map((s) => s.scene_id);
+  const cur = loadSel.value;
+  loadSel.innerHTML = `<option value="">Load a scene from the registry…</option>` + ids.map((i) => `<option value="${esc(i)}">${esc(i)}</option>`).join("");
+  if (ids.includes(cur)) loadSel.value = cur;
+}
+function builderLoad(obj) {
+  const b = blankScene();
+  draft = { ...b, ...JSON.parse(JSON.stringify(obj)) };
+  draft.capture = { ...b.capture, ...(draft.capture || {}) };
+  if (!Array.isArray(draft.queries) || !draft.queries.length) draft.queries = [blankQuery(draft.scene_id, 1)];
+  draft.queries = draft.queries.map((q, i) => ({ ...blankQuery(draft.scene_id, i + 1), ...q }));
+  delete draft.drive; delete draft.thumb_asset; delete draft.synced_at;
+  buildXui();
+  renderBuilder();
+  toast(`Loaded ${draft.scene_id || "scene"} into the builder`);
+}
+function numOrNull(v) { if (v === "" || v === null || v === undefined) return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
+function onBuilderInput(ev) {
+  const t = ev.target; if (!t.id || !t.id.startsWith("b-")) return;
+  if (t.dataset.xkey !== undefined && t.dataset.xpart) {           // "Other fields" rows
+    const key = t.dataset.xkey, j = +t.dataset.xj, rows = xui[key] || (xui[key] = []);
+    if (!rows[j]) rows[j] = ["", ""];
+    rows[j][t.dataset.xpart === "k" ? 0 : 1] = t.value;
+    applyExtras(key); refreshBuilderSide(); return;
+  }
+  let id = t.id, value = t.type === "checkbox" ? t.checked : t.value;
+  if (id.endsWith("--other")) id = id.slice(0, -7);                 // free text typed after "Other…"
+  else if (t.tagName === "SELECT") {
+    const o = document.getElementById(id + "--other");
+    if (o) { if (t.value === "__other__") { o.hidden = false; if (ev.type === "change") o.focus(); value = o.value; } else o.hidden = true; }
+  }
+  const s = draft, c = s.capture || (s.capture = {});
+  const m = id.match(/^b-q(\d+)-(.+)$/);
+  if (m) {
+    const qi = +m[1], q = s.queries[qi]; if (!q) return;
+    const f = m[2], p = `b-q${qi}`;
+    if (f.startsWith("ch-") || f === "ch_other") {
+      const known = E.challenges.filter((ch) => document.getElementById(`${p}-ch-${ch}`)?.checked);
+      const custom = (document.getElementById(`${p}-ch_other`)?.value || "").split(",").map((x) => x.trim()).filter(Boolean);
+      q.challenges = [...known, ...custom.filter((x) => !known.includes(x))];
+    }
+    else if (["gt_value", "gt_uncertainty"].includes(f)) q[f] = numOrNull(value);
+    else if (f === "frame_index") { const n = numOrNull(value); q.frame_index = n === null ? null : Math.trunc(n); }
+    else if (f === "evidence") q.evidence = String(value).split(",").map((x) => x.trim()).filter(Boolean);
+    else q[f] = value;
+    if (f === "kind" && ev.type === "change" && t.tagName === "SELECT" && t.value !== "__other__") { renderBuilder(); return; }
+  } else {
+    const f = id.slice(2);
+    if (["lens", "stabilization", "app", "notes"].includes(f)) c[f] = value;
+    else if (f === "zoom_changes" || f === "hdr") c[f] = !!value;
+    else if (f === "dynamic") s.dynamic = !!value;
+    else if (f === "scene_notes") s.notes = value;
+    else if (f === "calibration_video") s.calibration_video = String(value).trim() || null;
+    else if (f === "scene_id") {
+      const old = s.scene_id; s.scene_id = String(value).trim();
+      s.queries.forEach((q, i) => { if (!q.query_id || (old && q.query_id.startsWith(old + "-"))) { q.query_id = q.query_id && old ? s.scene_id + q.query_id.slice(old.length) : `${s.scene_id}-q${i + 1}`; const el = document.getElementById(`b-q${i}-query_id`); if (el) el.value = q.query_id; } });
+    }
+    else if (["collector", "environment", "status", "summary", "scope", "origin", "x_axis", "input_video"].includes(f)) s[f] = value;
+  }
+  refreshBuilderSide();
+}
+async function checkWording(i) {
+  const q = draft.queries[i]; const box = $(`#b-q${i}-check`); if (!q || !box) return;
+  box.hidden = false; box.textContent = "Asking Claude…";
+  const prompt = `You review measurement definitions for a benchmark. A coding agent will rebuild a real scene in 3D from a video, and an evaluator will compute this number from the agent's 3D scene. The definition must be unambiguous: two careful people must locate exactly the same endpoints and compute the same number.
+Scene scope: ${draft.scope || "(not given)"}
+Measurement kind: ${q.kind || "(not given)"}
+Definition: ${q.definition || "(empty)"}
+Point A: ${q.point_a || "-"}
+Point B: ${q.point_b || "-"}
+Point C: ${q.point_c || "-"}
+Object: ${q.object || "-"}
+Moment: ${q.moment || "-"}
+Reply with only JSON: {"ambiguous": true|false, "problems": ["short problem", ...], "suggestion": "a rewritten definition, or empty if fine"}`;
+  try {
+    const r = await sampleNs.json(prompt, { modelTier: "quick" });
+    const probs = Array.isArray(r?.problems) ? r.problems : [];
+    box.innerHTML = r?.ambiguous ? `<b>Possibly ambiguous.</b><ul class="issues" style="margin-top:4px">${probs.map((p) => `<li class="warn">${esc(p)}</li>`).join("")}</ul>${r.suggestion ? `<div style="margin-top:6px"><span class="muted">Suggested:</span> ${esc(r.suggestion)}</div>` : ""}`
+      : `<b>Looks unambiguous.</b>${probs.length ? `<ul class="issues" style="margin-top:4px">${probs.map((p) => `<li class="warn">${esc(p)}</li>`).join("")}</ul>` : ""}`;
+  } catch (e) {
+    const c = e && e.code;
+    box.textContent = c === "not_granted" ? "Claude checks aren't available in this view." : c === "rate_limited" ? "Too many checks just now; wait a minute and try again." : "The check didn't complete. Try again in a moment.";
+  }
+}
+
+// ---------- view dispatch ----------
+function emptyText() {
+  if (state.dbState === "absent") return "Sign in to claude.ai to see the registry. The builder works without signing in.";
+  if (!state.loaded) return "Loading the registry…";
+  return "No scenes yet. Collectors put scene folders with a scene.json on Google Drive, and Claude syncs them here.";
+}
+function renderView() {
+  if (state.view === "overview") renderOverview();
+  else if (state.view === "queries") renderQueries();
+  else if (state.view === "scenes") renderScenes();
+  else if (state.view === "builder") { if (!$("#bform").childElementCount) renderBuilder(); else refreshBuilderSide(); }
+}
+function onData() {
+  derive();
+  $("#demo-note").hidden = !state.scenes.some((s) => s.demo);
+  renderView();
+  if (state.drawerScene) openDrawer(state.drawerScene);
+}
+function setStatus(msg, cls = "info") { const n = $("#status-note"); if (!msg) { n.hidden = true; return; } n.className = `notice ${cls}`; n.textContent = msg; n.hidden = false; }
+
+// ---------- events ----------
+window.addEventListener("hashchange", route);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").hidden) closeDrawer(true); });
+$("#drawer-back").addEventListener("click", () => closeDrawer(true));
+$("#drawer").addEventListener("click", (e) => { const b = e.target.closest("button[data-seek]"); if (b) seekToFrame(+b.dataset.seek); });
+["#qf-search", "#qf-collector", "#qf-domain", "#qf-kind", "#qf-verdict", "#qf-issues"].forEach((s) => $(s).addEventListener("input", renderQueries));
+["#sf-search", "#sf-collector", "#sf-status"].forEach((s) => $(s).addEventListener("input", renderScenes));
+$("#q-table").addEventListener("click", (e) => {
+  const g = e.target.closest("button[data-goto]");
+  if (g) {
+    const sid = g.dataset.goto, f = g.dataset.frame !== undefined ? +g.dataset.frame : null;
+    state.pendingSeek = f === null ? null : { sid, frame: f };
+    if (location.hash === "#scene-" + sid) openDrawer(sid); else location.hash = "scene-" + sid;
+    return;
+  }
+  if (e.target.closest("a, button")) return;
+  const tr = e.target.closest("tr.row"); if (!tr) return;
+  state.openQ = state.openQ === tr.dataset.q ? null : tr.dataset.q; renderQueries();
+});
+$("#q-table").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr.row")) { e.preventDefault(); e.target.click(); } });
+$("#cards").addEventListener("click", (e) => { const c = e.target.closest(".card"); if (c) location.hash = "scene-" + c.dataset.scene; });
+$("#exp-json").addEventListener("click", exportJson);
+$("#exp-qcsv").addEventListener("click", exportQueriesCsv);
+$("#exp-scsv").addEventListener("click", exportScenesCsv);
+$("#bform").addEventListener("input", onBuilderInput);
+$("#bform").addEventListener("change", onBuilderInput);
+$("#bform").addEventListener("submit", (e) => e.preventDefault());
+$("#bform").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const i = +b.dataset.qi, act = b.dataset.act;
+  if (act === "add") { draft.queries.push(blankQuery(draft.scene_id, draft.queries.length + 1)); buildXui(); renderBuilder(); }
+  else if (act === "remove") { draft.queries.splice(i, 1); if (!draft.queries.length) draft.queries.push(blankQuery(draft.scene_id, 1)); buildXui(); renderBuilder(); }
+  else if (act === "check") checkWording(i);
+  else if (act === "addx") { const k = b.dataset.xkey; (xui[k] || (xui[k] = [])).push(["", ""]); renderBuilder(); }
+  else if (act === "rmx") { const k = b.dataset.xkey; (xui[k] || []).splice(+b.dataset.xj, 1); applyExtras(k); renderBuilder(); }
+});
+$("#b-copy").addEventListener("click", () => copyText(JSON.stringify(draftOut(), null, 2), "scene.json copied"));
+$("#b-download").addEventListener("click", () => saveFile("scene.json", JSON.stringify(draftOut(), null, 2)));
+$("#b-reset").addEventListener("click", () => { draft = blankScene(); buildXui(); renderBuilder(); toast("Started a new scene"); });
+$("#b-load-btn").addEventListener("click", () => { const id = $("#b-load").value; const s = state.scenes.find((x) => x.scene_id === id); if (s) builderLoad(cleanScene(s)); });
+$("#b-paste-btn").addEventListener("click", () => {
+  try { const o = JSON.parse($("#b-paste").value); if (!o || typeof o !== "object" || Array.isArray(o)) throw new Error(); builderLoad(o); $("#b-paste").value = ""; }
+  catch { toast("That isn't valid scene JSON"); }
+});
+
+// ---------- boot ----------
+buildXui();
+route();
+(async () => {
+  sampleNs = await claude.use("sample").catch(() => null);
+  if (sampleNs && state.view === "builder") renderBuilder();
+})();
+(async () => {
+  const db = await claude.use("db").catch(() => null);
+  if (!db) { state.dbState = "absent"; setStatus("Sign in to claude.ai to see the registry data. You can still use the scene.json builder."); renderView(); return; }
+  state.dbState = "connecting";
+  let timer = setTimeout(() => setStatus("The registry data can't be reached yet. It will appear when the connection comes back."), 10000);
+  db.collection("scenes").onSnapshot((snap) => {
+    state.scenes = snap.docs.map((d) => ({ ...d.data(), scene_id: d.data()?.scene_id || d.id })).sort((a, b) => String(a.scene_id).localeCompare(String(b.scene_id)));
+    if (!snap.metadata.fromCache) { state.loaded = true; state.dbState = "live"; clearTimeout(timer); setStatus(""); }
+    onData();
+  }, (err) => { clearTimeout(timer); state.loaded = true; setStatus(err && err.code === "revoked" ? "Access to the registry data ended for this view." : "The registry data stopped updating. Reload the page to reconnect."); onData(); });
+  db.doc("meta/sync").onSnapshot((d) => { state.meta = d.exists ? d.data() : null; if (state.view === "overview") renderOverview(); }, () => {});
+})();
+})();
+</script>
