@@ -274,6 +274,10 @@ pre { margin: 10px 0 0; padding: 12px; border-radius: var(--r-sm); background: v
 .dv-sub { color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
 .dv-msg { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .dv-msg.err { color: var(--warn); }
+.dv-confirm { border: 1px solid var(--accent); border-radius: var(--r-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.dv-confirm h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.dv-confirm ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; overflow-wrap: anywhere; }
+.dv-confirm .dvc-note { color: var(--ink-2); font-size: 12.5px; }
 .dlist { overflow: hidden; }
 .drow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; padding: 12px 16px; }
 .drow + .drow { border-top: 1px solid var(--line); }
@@ -348,8 +352,10 @@ pre { margin: 10px 0 0; padding: 12px; border-radius: var(--r-sm); background: v
 (() => {
 "use strict";
 const THRESH = 0.10;
-const KNOWN_SCENE = new Set(["schema", "demo", "scene_id", "collector", "status", "environment", "summary", "scope", "dynamic", "input_video", "device", "resolution", "fps", "duration_s", "n_frames", "calibration_video", "evidence_dir", "queries", "notes", "drive", "thumb_asset", "video_asset", "synced_at"]);
-const KNOWN_Q = new Set(["query_id", "metric_domain", "kind", "point_a", "point_b", "point_c", "object", "definition", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "challenges", "robotics_link", "why_hard", "pilot", "results", "notes"]);
+const KNOWN_SCENE = new Set(["schema", "demo", "difficulty_anchor", "scene_id", "collector", "status", "environment", "summary", "scope", "dynamic", "input_video", "device", "resolution", "fps", "duration_s", "n_frames", "calibration_video", "evidence_dir", "queries", "notes", "drive", "thumb_asset", "video_asset", "synced_at"]);
+const UNIT_LABEL = { degC: "°C", deg: "°", percent: "%" };
+const unitLabel = (u) => UNIT_LABEL[u] || u || "";
+const KNOWN_Q = new Set(["query_id", "metric_domain", "kind", "point_a", "point_b", "point_c", "object", "definition", "what_to_measure", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "challenges", "robotics_link", "why_hard", "pilot", "results", "notes"]);
 const LABEL = {
   rigid_distance: "Rigid distance", deformable_distance: "Deformable distance", liquid_volume: "Liquid volume", object_weight: "Object weight", robot_state: "Robot state",
   temperature: "Temperature", material_composition: "Material composition", image_frame: "Image frame", camera: "Camera",
@@ -357,6 +363,7 @@ const LABEL = {
   occlusion: "Occlusion", clutter_stacking: "Clutter / stacking", fast_or_shaky_camera: "Fast or shaky camera", low_light: "Low light", zoom_or_lens: "Zoom / lens change",
   reflection_mirror: "Reflection / mirror", transparency: "Transparency", dynamic_scene: "Dynamic scene", imagined_state: "Imagined state", long_context: "Long context",
   physical_gap: "Physical gap", fit_affordance: "Fit / affordance", deformable: "Deformable", small_or_thin: "Small or thin", irregular_shape: "Irregular shape",
+  frame_format: "Unusual frame format", degraded_optics: "Degraded optics", visual_illusion: "Visual illusion", needle_in_haystack: "Needle in a haystack", voice: "Voice", physical_property: "Other physical properties",
   color: "Color", other: "Other",
 };
 const lab = (k) => LABEL[k] || String(k ?? "").replace(/_/g, " ");
@@ -486,11 +493,11 @@ function coreFields(q) {
 function queryItem(s, q, i) {
   const id = q.query_id || `${s.scene_id}-q${i + 1}`, open = state.openQs.has(id), st = runStats(q);
   const n = (String(id).match(/q(\d+)$/i) || [])[1] || String(i + 1);
-  const unit = esc(q.gt_unit || "");
+  const unit = esc(unitLabel(q.gt_unit));
   const gt = isNum(q.gt_value) ? `<div class="v">${fmt(q.gt_value)} <span class="u">${unit}</span></div>${isNum(q.gt_uncertainty) ? `<div class="u">± ${fmt(q.gt_uncertainty)} ${unit}</div>` : ""}` : '<div class="u miss">No value yet</div>';
   const runs = st.n ? `<span class="runs"><b>${st.within} of ${st.n}</b> runs within 10%</span>` : '<span class="runs">Not run yet</span>';
   const res = q.results || [];
-  const details = [["how measured", q.how_measured, true], ["kind", q.kind ? lab(q.kind) : null, true], ["why it should be hard", q.why_hard],
+  const details = [["how measured", q.how_measured, true], ["kind", q.kind ? lab(q.kind) : null, true], ["short definition", q.what_to_measure ? q.definition : null], ["why it should be hard", q.why_hard],
     ["evidence", (q.evidence || []).join(", ") || null], ["notes", q.notes], ...extrasOf(q, KNOWN_Q).map(([k, v]) => [k, v])]
     .filter(([, v, always]) => always || !blank(v));
   return `<article class="qc${open ? " open" : ""}" data-qid="${esc(id)}">
@@ -498,7 +505,7 @@ function queryItem(s, q, i) {
       <div class="qc-head">
         <div style="min-width:0">
           <div class="qc-kicker"><span class="qc-n">Q${esc(n)}</span><span class="mono">${esc(id)}</span></div>
-          <h4 class="qc-def">${esc(q.definition || "(no definition)")}</h4>
+          <h4 class="qc-def">${esc(q.what_to_measure || q.definition || "(no definition)")}</h4>
           ${targets(q) ? `<div class="qc-sub">${targets(q)}</div>` : ""}
         </div>
         <div class="qc-gt"><div class="lab">Ground truth</div>${gt}</div>
@@ -551,7 +558,7 @@ function renderDetail() {
   el.innerHTML = `
     <div class="d-head">
       <div class="d-title"><h2>${esc(s.scene_id)}</h2>
-        <div class="d-meta">${[s.collector || "—", s.environment, s.status].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('<span class="sep">·</span>')}${s.demo ? '<span class="tag">Example data</span>' : ""}</div></div>
+        <div class="d-meta">${[s.collector || "—", s.environment, s.status].filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('<span class="sep">·</span>')}${s.demo ? '<span class="tag">Example data</span>' : ""}${s.difficulty_anchor ? '<span class="tag">Difficulty anchor</span>' : ""}</div></div>
       <div class="d-actions">${d.folder_url ? `<a class="btn" href="${esc(d.folder_url)}" target="_blank" rel="noopener">${icon("folder")}Open in Drive</a>` : ""}<button class="btn" type="button" id="copy-json">${icon("copy")}Copy JSON</button></div>
     </div>
     <div class="card hero ${shape}" id="hero">
@@ -619,11 +626,11 @@ function renderQueryTable() {
   const th = (k, label, cls = "") => `<th${cls ? ` class="${cls}"` : ""}${k ? ` aria-sort="${key === k ? (dir > 0 ? "ascending" : "descending") : "none"}"` : ""}>${k ? `<button type="button" data-sort="${k}">${label}${key === k ? `<span class="arr">${dir > 0 ? "▲" : "▼"}</span>` : ""}</button>` : label}</th>`;
   t.innerHTML = `<thead><tr>${th("query_id", "Query")}${th("domain", "Metric domain")}${th("challenges", "Associated challenges")}${th(null, "Connection to real-world application / robotics failure mode", "wrap")}${th(null, "Ground truth")}${th("runs", "Runs within 10%")}</tr></thead><tbody>${
     rows.map((x) => { const st = runStats(x.q), ch = x.q.challenges || []; return `<tr class="click" tabindex="0" data-goto="${esc(x.s.scene_id)}" data-qid="${esc(x.id)}">
-      <td class="wide"><span class="mono">${esc(x.id)}</span> <span class="faint">${esc(x.s.collector || "")}</span><span class="cap qdef">${esc(x.q.definition || "")}</span></td>
+      <td class="wide"><span class="mono">${esc(x.id)}</span> <span class="faint">${esc(x.s.collector || "")}</span><span class="cap qdef">${esc(x.q.what_to_measure || x.q.definition || "")}</span></td>
       <td>${x.q.metric_domain ? `<span class="dom">${esc(lab(x.q.metric_domain))}</span>` : MISS}</td>
       <td class="chal">${ch.length ? `<div class="pills">${ch.map((c) => `<span class="pill">${esc(lab(c))}</span>`).join("")}</div>` : MISS}</td>
       <td class="wide">${x.q.robotics_link ? `<span class="cap">${esc(x.q.robotics_link)}</span>` : MISS}</td>
-      <td class="mono num" style="white-space:nowrap">${isNum(x.q.gt_value) ? `${fmt(x.q.gt_value)} ${esc(x.q.gt_unit || "")}${isNum(x.q.gt_uncertainty) ? `<div class="s">± ${fmt(x.q.gt_uncertainty)}</div>` : ""}` : '<span class="miss">no value</span>'}</td>
+      <td class="mono num" style="white-space:nowrap">${isNum(x.q.gt_value) ? `${fmt(x.q.gt_value)} ${esc(unitLabel(x.q.gt_unit))}${isNum(x.q.gt_uncertainty) ? `<div class="s">± ${fmt(x.q.gt_uncertainty)}</div>` : ""}` : '<span class="miss">no value</span>'}</td>
       <td class="mono num" style="white-space:nowrap">${st.n ? `${st.within} of ${st.n}<div class="s">closest ${sPct(st.best)}</div>` : '<span class="faint">not run</span>'}</td></tr>`; }).join("")
     || '<tr><td colspan="6" class="empty">No queries match your search.</td></tr>'}</tbody>`;
 }
@@ -631,7 +638,10 @@ function renderQueryTable() {
 // ---------- Google Drive check ----------
 // "Check Drive" lists Second-Round-Data-Collection through the viewer's own Google Drive connector, compares it with
 // the registry, and saves the result to meta/sync so every viewer sees it. "Import" copies a scene.json (and a
-// thumbnail.* next to it) into the registry. Playable video copies are made separately by Claude Code.
+// thumbnail.* next to it) into the registry. Two bulk actions follow a check: "Import new" adds only scenes that
+// aren't in the registry yet; "Sync all" rescans, then (after the owner confirms) imports the new ones, re-reads every
+// linked scene from Drive, and deletes registry scenes that are no longer on Drive. Playable video copies are made
+// separately by Claude Code.
 const DRIVE = { server: "Google Drive", root: "1IOUYD7-bWOdYgqBpK6qQsautl8f_y29H", name: "Second-Round-Data-Collection" };
 const FOLDER_MIME = "application/vnd.google-apps.folder", SHORTCUT_MIME = "application/vnd.google-apps.shortcut";
 const folderUrl = (id) => `https://drive.google.com/drive/folders/${encodeURIComponent(id)}`;
@@ -643,13 +653,13 @@ const docIdFor = (v) => String(v ?? "").trim().replace(/\s+/g, "-").replace(/[^A
 const RESERVED = ["thumb_asset", "video_asset", "drive", "synced_at"];
 const ST = {
   new: ["New", "accent"], changed: ["Updated on Drive", "accent"], conflict: ["ID already taken", "warn"], error: ["scene.json problem", "warn"],
-  no_json: ["Video, no scene.json", ""], missing: ["Gone from Drive", "warn"], imported: ["In registry", "ok"],
+  no_json: ["Video, no scene.json", ""], missing: ["Gone from Drive", "warn"], unlinked: ["Not on Drive", "warn"], imported: ["In registry", "ok"],
 };
-const ST_ORDER = ["new", "changed", "conflict", "error", "no_json", "missing", "imported"];
+const ST_ORDER = ["new", "changed", "conflict", "error", "no_json", "missing", "unlinked", "imported"];
 // Connector failures that stop the whole check (anything else only marks one file).
 const FATAL = new Set(["needs_reauth", "server_not_connected", "selection_required", "server_not_found", "server_unavailable", "not_in_manifest", "blocked_by_policy",
   "approval_required", "consent_required", "rate_limited", "upstream_error", "not_granted", "capability_disabled", "capability_removed", "user_changed", "cancelled"]);
-const drive = { mcp: null, canEdit: false, busy: false, phase: "", err: "", result: null, importing: null, retries: 0 };
+const drive = { mcp: null, canEdit: false, busy: false, phase: "", err: "", result: null, importing: null, retries: 0, confirm: null, complete: true };
 const driveView = () => drive.result || (state.meta && Array.isArray(state.meta.items) ? state.meta : null);
 const sceneDoc = (s) => DOCID.get(s) || docIdFor(s.scene_id);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -704,12 +714,14 @@ async function listChildren(parents) {
     out.push(...files);
     token = p && p.nextPageToken;
     if (!files.length || !token) break;
+    if (page === 39) drive.complete = false; // stopped at the page cap: the listing may be missing files
   }
   return out;
 }
 async function walk() {
   const folders = new Map([[DRIVE.root, { id: DRIVE.root, title: DRIVE.name, parent: null, modified: "" }]]), files = new Map();
   let level = [DRIVE.root];
+  drive.complete = true;
   for (let depth = 0; level.length && depth < 10; depth++) {
     const next = [], chunks = [];
     for (let i = 0; i < level.length; i += 12) chunks.push(level.slice(i, i + 12));
@@ -729,7 +741,8 @@ async function walk() {
     });
     level = next;
   }
-  return { folders, files };
+  if (level.length) drive.complete = false; // folders nested deeper than 10 levels weren't listed
+  return { folders, files, complete: drive.complete };
 }
 function pathOf(folders, id) { const parts = []; let cur = folders.get(id), g = 0; while (cur && cur.id !== DRIVE.root && g++ < 20) { parts.unshift(cur.title); cur = folders.get(cur.parent); } return parts.join(" / "); }
 function topOf(folders, id) { let cur = folders.get(id), g = 0; while (cur && cur.parent !== DRIVE.root && g++ < 20) cur = folders.get(cur.parent); return cur && cur.parent === DRIVE.root ? cur : null; }
@@ -822,17 +835,23 @@ async function classify(w) {
       : sameScene(ex, it) ? `Already in the registry but not linked to Drive yet. Importing links it${ex.video_asset ? " and keeps its video" : ""}.` : "Replaces a registry scene with the same ID that didn't come from Drive.";
     claimed.set(id, it);
   }
+  // Registry scenes that no Drive folder accounts for (never imported from Drive, and no upload claims their ID).
+  for (const s of state.scenes) {
+    if (s.drive && s.drive.scene_json_id) continue; // linked scenes are either on Drive or "Gone from Drive"
+    const id = sceneDoc(s); if (claimed.has(id)) continue;
+    items.push({ key: "u:" + id, status: "unlinked", scene_id: s.scene_id, doc_id: id, collector: s.collector || "", n_queries: (s.queries || []).length, note: "In the registry, but no Drive folder holds this scene." });
+  }
   // One row per person (each folder at the top of the Drive folder).
   const tops = new Map();
   for (const fo of folders.values()) if (fo.parent === DRIVE.root) tops.set(fo.id, { name: fo.title, url: folderUrl(fo.id), scenes: 0, new: 0, videos: 0, images: 0, scene_json: 0, files: 0, modified: fo.modified || "" });
-  for (const it of items) { const r = [...tops.values()].find((t) => t.name === it.person); if (!r || it.status === "missing") continue; r.scenes++; if (it.status === "new" || it.status === "changed") r.new++; }
+  for (const it of items) { const r = [...tops.values()].find((t) => t.name === it.person); if (!r || it.status === "missing" || it.status === "unlinked") continue; r.scenes++; if (it.status === "new" || it.status === "changed") r.new++; }
   for (const f of files.values()) {
     const t = topOf(folders, f.parent); if (!t) continue;
     const r = tops.get(t.id), k = kindOf(f);
     r.files++; if (k === "video") r.videos++; else if (k === "image") r.images++; else if (k === "json") r.scene_json++;
     if (f.modified > r.modified) r.modified = f.modified;
   }
-  return { checked_at: new Date().toISOString(), root: DRIVE.root, root_url: folderUrl(DRIVE.root), n_folders: folders.size - 1, n_files: files.size,
+  return { checked_at: new Date().toISOString(), root: DRIVE.root, root_url: folderUrl(DRIVE.root), n_folders: folders.size - 1, n_files: files.size, complete: w.complete !== false,
     counts: recount(items), items, folders: [...tops.values()].sort((a, b) => a.name.localeCompare(b.name)) };
 }
 async function saveMeta() {
@@ -840,19 +859,23 @@ async function saveMeta() {
   try { const db = await claude.use("db"); if (!db) return false; await db.doc("meta/sync").set(JSON.parse(JSON.stringify(drive.result))); return true; }
   catch { return false; }
 }
-async function runCheck() {
-  if (drive.busy || !drive.mcp) return;
-  if (!state.loaded) { toast("The registry is still loading; try again in a moment"); return; }
+async function runCheck(opts = {}) {
+  if (drive.busy || !drive.mcp) return false;
+  if (!state.loaded) { toast("The registry is still loading; try again in a moment"); return false; }
+  if (!opts.keepConfirm) drive.confirm = null;
   drive.busy = true; drive.err = ""; drive.retries = 1; drive.phase = "Scanning Drive…"; render();
+  let ok = false;
   try {
     const w = await walk();
     drive.phase = "Comparing with the registry…"; renderDrive();
     drive.result = await classify(w);
     const c = drive.result.counts, n = c.new + c.changed;
     if (!(await saveMeta()) && drive.canEdit) drive.err = "The check finished, but its results couldn't be saved for other viewers.";
-    toast(n ? `${n} new or updated scene${n === 1 ? "" : "s"} on Drive` : "Nothing new on Drive");
+    if (!opts.quiet) toast(n ? `${n} new or updated scene${n === 1 ? "" : "s"} on Drive` : "Nothing new on Drive");
+    ok = true;
   } catch (e) { drive.err = driveErrorText(e); }
   finally { drive.busy = false; drive.phase = ""; render(); }
+  return ok;
 }
 async function importOne(db, assets, it) {
   const obj = await readSceneJson(it.scene_json_id);
@@ -911,32 +934,108 @@ async function importItems(keys) {
   toast(ok ? `Imported ${ok} scene${ok === 1 ? "" : "s"}` : "Nothing was imported");
   render();
 }
+// ---------- Sync all: make the registry match Drive ----------
+const SCENE_ST = new Set(["new", "changed", "imported", "conflict", "error"]);
+function syncPlan(R) {
+  const items = R.items || [];
+  const adds = items.filter((i) => i.status === "new");
+  const updates = items.filter((i) => i.status === "changed" || i.status === "imported");
+  const writing = new Set([...adds, ...updates].map((i) => i.doc_id).filter(Boolean));
+  const seen = new Set();
+  const gone = items.filter((i) => (i.status === "missing" || i.status === "unlinked") && i.doc_id && !writing.has(i.doc_id) && !seen.has(i.doc_id) && seen.add(i.doc_id));
+  const kept = items.filter((i) => (i.status === "error" || i.status === "conflict") && i.doc_id && state.scenes.some((s) => sceneDoc(s) === i.doc_id));
+  const nScenes = items.filter((i) => SCENE_ST.has(i.status)).length;
+  const blocked = !gone.length ? "" : R.complete === false ? "The Drive listing was cut short, so no scene will be removed this time."
+    : !nScenes ? "Drive sent back no scene.json files at all, so no scene will be removed. Check that you can open the folder in Google Drive." : "";
+  return { adds, updates, removes: blocked ? [] : gone, held: blocked ? gone : [], kept, blocked, checked_at: R.checked_at };
+}
+async function startSync() {
+  if (drive.busy || !drive.canEdit || !drive.mcp) return;
+  drive.confirm = null;
+  if (!(await runCheck({ quiet: true }))) return; // always plan from a fresh scan by this viewer
+  drive.confirm = syncPlan(drive.result);
+  render();
+  requestAnimationFrame(() => { const b = document.querySelector('#dv button[data-act="sync-go"]'); if (b) { b.focus({ preventScroll: true }); b.closest(".dv-confirm")?.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" }); } });
+}
+async function applySync() {
+  const plan = drive.confirm, R = drive.result;
+  drive.confirm = null;
+  if (!plan || !R || drive.busy || !drive.canEdit || !drive.mcp || plan.checked_at !== R.checked_at) { render(); return; }
+  const db = await claude.use("db").catch(() => null), assets = await claude.use("assets").catch(() => null);
+  if (!db) { toast("The registry database isn't available in this view"); render(); return; }
+  drive.busy = true; drive.err = ""; drive.retries = 3;
+  const todo = [...plan.adds, ...plan.updates], written = new Set();
+  let added = 0, updated = 0, removed = 0, failed = 0, stopped = false;
+  for (const [n, it] of todo.entries()) {
+    drive.phase = `Syncing ${n + 1} of ${todo.length}: ${it.scene_id || it.path}`; drive.importing = it.key; renderDrive();
+    const wasNew = it.status === "new";
+    try { await importOne(db, assets, it); written.add(it.doc_id); it.status = "imported"; it.note = it.thumb_note || ""; if (wasNew) added++; else updated++; }
+    catch (e) {
+      if (e && FATAL.has(e.code)) { drive.err = driveErrorText(e); stopped = true; break; }
+      failed++; it.note = `Sync failed: ${e && e.message ? e.message : e}`;
+    }
+  }
+  drive.importing = null;
+  if (stopped) { if (plan.removes.length) drive.err += " The sync stopped before removing anything."; }
+  else for (const it of plan.removes) {
+    if (written.has(it.doc_id)) continue;
+    drive.phase = `Removing ${it.scene_id || it.doc_id}`; renderDrive();
+    try { await db.doc("scenes/" + it.doc_id).delete(); removed++; R.items = R.items.filter((x) => x !== it); }
+    catch (e) { failed++; it.note = `Couldn't remove it: ${e && e.message ? e.message : e}`; }
+  }
+  R.counts = recount(R.items); R.synced_at = new Date().toISOString();
+  await saveMeta();
+  drive.busy = false; drive.phase = "";
+  const parts = [added && `${added} imported`, updated && `${updated} updated`, removed && `${removed} removed`, failed && `${failed} failed`].filter(Boolean);
+  toast(parts.length ? `Sync: ${parts.join(", ")}` : "Nothing changed");
+  render();
+}
+function confirmHtml(p) {
+  const names = (list, n = 6) => list.slice(0, n).map((i) => `<span class="mono">${esc(i.scene_id || i.path || i.doc_id)}</span>`).join(", ") + (list.length > n ? ` and ${list.length - n} more` : "");
+  const why = (i) => i.status === "missing" ? `scene.json gone from ${esc(i.path || "Drive")}` : "no Drive folder holds it";
+  const dis = drive.busy ? " disabled" : "";
+  return `<div class="dv-confirm" role="group" aria-label="Sync all with Drive">
+    <h4>Make the registry match Drive?</h4>
+    <ul>
+      <li>${p.adds.length ? `Import ${plural(p.adds.length, "new scene")}: ${names(p.adds)}` : "No new scenes to import"}</li>
+      <li>${p.updates.length ? `Update ${plural(p.updates.length, "scene")} from their scene.json on Drive` : "No existing scenes to update"}</li>
+      ${p.removes.length ? p.removes.map((i) => `<li>Remove <span class="mono">${esc(i.scene_id || i.doc_id)}</span>: ${why(i)}</li>`).join("") : p.blocked ? "" : "<li>Nothing to remove</li>"}
+      ${p.kept.length ? `<li>Leave ${plural(p.kept.length, "scene")} as ${p.kept.length === 1 ? "it is" : "they are"}, because the Drive copy has a problem: ${names(p.kept)}</li>` : ""}
+    </ul>
+    ${p.blocked ? `<div class="dv-msg err"><span>${esc(p.blocked)} Held back: ${names(p.held)}</span></div>` : ""}
+    <div class="dvc-note">Updating overwrites each scene with what's on Drive now. Removing deletes the scene from the registry for every viewer; nothing on Drive changes, and a removed scene comes back when it's uploaded again (its playable video then has to be made again).</div>
+    <div class="d-actions"><button class="btn primary" type="button" data-act="sync-go"${dis}>${p.removes.length ? `Sync and remove ${p.removes.length}` : "Sync now"}</button><button class="btn" type="button" data-act="sync-cancel"${dis}>Cancel</button></div>
+  </div>`;
+}
 function renderDrive() {
   const el = $("#dv"); if (!el || state.view !== "drive") return;
   const R = driveView(), c = (R && R.counts) || {};
   const canCheck = !!drive.mcp, canImport = canCheck && drive.canEdit;
-  const importable = R ? R.items.filter((i) => i.status === "new" || i.status === "changed") : [];
+  const importable = R ? R.items.filter((i) => i.status === "new") : [];
   const waiting = state.scenes.filter((s) => s.drive && Array.isArray(s.drive.videos) && s.drive.videos.length && !s.video_asset).length;
   const dis = drive.busy ? " disabled" : "";
   const chips = R ? ST_ORDER.filter((k) => c[k]).map((k) => `<span class="tag ${ST[k][1]}">${c[k]} ${esc(ST[k][0].toLowerCase())}</span>`).join("") : "";
   const status = R ? `Last checked ${esc(ago(R.checked_at))} <span class="faint">${esc(local(R.checked_at))}</span>`
     : canCheck ? "Not checked yet. Check Drive lists every scene folder and marks the ones that aren't in the registry yet." : "Not checked yet.";
+  const synced = R && R.synced_at ? ` · last synced ${esc(ago(R.synced_at))}` : "";
   const rows = R ? R.items.slice().sort((a, b) => ST_ORDER.indexOf(a.status) - ST_ORDER.indexOf(b.status) || String(a.path).localeCompare(String(b.path))) : [];
-  const action = (i) => (i.status === "new" || i.status === "changed") && canImport ? `<button class="btn" type="button" data-act="import" data-key="${esc(i.key)}"${dis}>${drive.importing === i.key ? "Importing…" : "Import"}</button>`
+  const action = (i) => (i.status === "new" || i.status === "changed") && canImport ? `<button class="btn" type="button" data-act="import" data-key="${esc(i.key)}"${dis}>${drive.importing === i.key ? (i.status === "new" ? "Importing…" : "Updating…") : i.status === "new" ? "Import" : "Update"}</button>`
     : i.status === "imported" && i.scene_id && state.scenes.some((s) => s.scene_id === i.scene_id) ? `<a href="#scene-${esc(i.scene_id)}">Open</a>` : "";
   el.innerHTML = `
     <div class="card dv-head">
       <div class="dv-top">
         <div><h3>Google Drive</h3><div class="dv-sub"><a href="${folderUrl(DRIVE.root)}" target="_blank" rel="noopener">${esc(DRIVE.name)}</a> · each folder at the top is one person; loose files there are ignored</div></div>
-        <div class="d-actions">${canCheck ? `<button class="btn" type="button" data-act="check"${dis}>${icon("refresh", drive.busy ? "spin" : "")}${drive.busy ? "Working…" : "Check Drive"}</button>` : ""}${canImport && importable.length ? `<button class="btn primary" type="button" data-act="import-all"${dis}>Import ${importable.length} new</button>` : ""}</div>
+        <div class="d-actions">${canCheck ? `<button class="btn" type="button" data-act="check"${dis}>${icon("refresh", drive.busy ? "spin" : "")}${drive.busy ? "Working…" : "Check Drive"}</button>` : ""}${canImport && importable.length ? `<button class="btn primary" type="button" data-act="import-all"${dis} title="Import only the scenes that aren't in the registry yet">Import ${importable.length} new</button>` : ""}${canImport ? `<button class="btn" type="button" data-act="sync"${dis} title="Rescan Drive, then import new scenes, update every scene from Drive and remove scenes no longer on Drive">Sync all with Drive</button>` : ""}</div>
       </div>
-      <div class="dv-msg">${status}</div>
+      <div class="dv-msg">${status}${synced}</div>
+      ${canImport && !drive.confirm ? '<div class="dv-msg faint">Import new adds only the scenes that aren\'t in the registry yet. Sync all with Drive also updates every scene from Drive and removes the ones no longer there; it shows the list and asks before changing anything.</div>' : ""}
+      ${drive.confirm ? confirmHtml(drive.confirm) : ""}
       ${chips ? `<div class="chips">${chips}</div>` : ""}
       ${drive.busy ? `<div class="dv-msg">${icon("refresh", "spin")}${esc(drive.phase)}</div>` : drive.err ? `<div class="dv-msg err">${esc(drive.err)}</div>` : ""}
       ${waiting ? `<div class="dv-msg">${waiting} imported scene${waiting === 1 ? " has" : "s have"} no playable video yet. Ask Claude in Claude Code to make the playback copies.</div>` : ""}
       ${!canCheck && R ? '<div class="dv-msg faint">Only people with Google Drive connected in claude.ai can run a new check.</div>' : ""}
     </div>
-    ${R ? `<div><div class="sec-head"><h3>Scene folders</h3><span class="faint mono">${rows.filter((i) => i.status !== "missing").length}</span></div>
+    ${R ? `<div><div class="sec-head"><h3>Scene folders</h3><span class="faint mono">${rows.filter((i) => i.status !== "missing" && i.status !== "unlinked").length}</span></div>
       <div class="card dlist">${rows.map((i) => `<div class="drow">
         <div class="drow-main">
           <div class="drow-top"><span class="tag ${(ST[i.status] || ["", ""])[1]}">${esc((ST[i.status] || [i.status])[0])}</span>${i.folder_url ? `<a href="${esc(i.folder_url)}" target="_blank" rel="noopener">${esc(i.path || "(folder)")}</a>` : `<span>${esc(i.path || "")}</span>`}</div>
@@ -965,7 +1064,7 @@ async function save(filename, data) {
 const cell = (v) => { const s = Array.isArray(v) ? v.join("; ") : v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 const HEAD = { query_id: "Question ID", scene_id: "Scene ID", collector: "PoC", metric_domain: "Metric Domain (Single-select)", challenges: "Associated Challenges (Multi-select)", robotics_link: "Connection to Real World Application / Robotics Failure Mode" };
 function exportCsv() {
-  const cols = ["query_id", "scene_id", "collector", "metric_domain", "challenges", "robotics_link", "kind", "definition", "point_a", "point_b", "point_c", "object", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "why_hard", "notes", "other_fields", "n_runs", "n_within_10pct"];
+  const cols = ["query_id", "scene_id", "collector", "metric_domain", "challenges", "robotics_link", "kind", "what_to_measure", "definition", "point_a", "point_b", "point_c", "object", "moment", "frame_index", "gt_value", "gt_unit", "gt_uncertainty", "how_measured", "evidence", "why_hard", "notes", "other_fields", "n_runs", "n_within_10pct"];
   const rows = allQueries().map((x) => { const st = runStats(x.q), xs = extrasOf(x.q, KNOWN_Q); return { ...x.q, query_id: x.id, scene_id: x.s.scene_id, collector: x.s.collector, other_fields: xs.length ? Object.fromEntries(xs) : "", n_runs: st.n, n_within_10pct: st.within }; });
   save("round2-queries.csv", [cols.map((c) => cell(HEAD[c] || c)).join(","), ...rows.map((r) => cols.map((c) => cell(r[c])).join(","))].join("\n"));
 }
@@ -1019,7 +1118,10 @@ $("#dv").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-act]"); if (!b || b.disabled) return;
   if (b.dataset.act === "check") runCheck();
   else if (b.dataset.act === "import") importItems([b.dataset.key]);
-  else if (b.dataset.act === "import-all") { const R = driveView(); if (R) importItems(R.items.filter((i) => i.status === "new" || i.status === "changed").map((i) => i.key)); }
+  else if (b.dataset.act === "import-all") { const R = driveView(); if (R) importItems(R.items.filter((i) => i.status === "new").map((i) => i.key)); }
+  else if (b.dataset.act === "sync") startSync();
+  else if (b.dataset.act === "sync-go") applySync();
+  else if (b.dataset.act === "sync-cancel") { drive.confirm = null; renderDrive(); }
 });
 $("#x-json").addEventListener("click", () => { $("#exp-menu").open = false; exportJson(); });
 $("#x-csv").addEventListener("click", () => { $("#exp-menu").open = false; exportCsv(); });

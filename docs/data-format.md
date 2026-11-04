@@ -44,7 +44,7 @@ No coordinate frame is given: the agent defines its own coordinate system (no or
 | Field | Type | Notes |
 |---|---|---|
 | `query_id` | string | `<scene_id>-q<N>` |
-| `metric_domain` | enum (single) | `rigid_distance` `deformable_distance` `liquid_volume` `object_weight` `robot_state` `temperature` `material_composition` `image_frame` `camera` |
+| `metric_domain` | enum (single) | `rigid_distance` `deformable_distance` `liquid_volume` `object_weight` `robot_state` `temperature` `material_composition` `image_frame` `camera` `physical_property` (exploratory: stiffness, friction, …) |
 | `kind` | enum | How the number is computed from the model's scene (see below) |
 | `point_a`, `point_b`, `point_c` | text | Endpoints in words, specific enough that a stranger could put a finger on them. Unused ones are blank |
 | `object` | text | For object-level kinds (volume, weight, pixel area, …) |
@@ -58,7 +58,7 @@ No coordinate frame is given: the agent defines its own coordinate system (no or
 | `gt_uncertainty` | number | ± in the same unit. **Must be ≤ 2.5 % of `gt_value`**; otherwise GT noise, not the model, decides pass/fail at 10 % |
 | `how_measured` | text | Instrument and procedure ("steel tape, hook on A, read at B, 3 readings: 41.1 / 41.2 / 41.2 cm") |
 | `evidence` | paths | Files in `evidence_dir`, named `<query_id>_*.jpg` |
-| `challenges` | enum (multi) | `occlusion` `clutter_stacking` `fast_or_shaky_camera` `low_light` `zoom_or_lens` `reflection_mirror` `transparency` `dynamic_scene` `imagined_state` `long_context` `physical_gap` `fit_affordance` `deformable` `small_or_thin` `irregular_shape` `color` `other`, plus your own |
+| `challenges` | enum (multi) | `occlusion` `clutter_stacking` `fast_or_shaky_camera` `frame_format` `low_light` `zoom_or_lens` `degraded_optics` `reflection_mirror` `transparency` `visual_illusion` `dynamic_scene` `imagined_state` `long_context` `needle_in_haystack` `physical_gap` `fit_affordance` `deformable` `small_or_thin` `irregular_shape` `color` `voice` `other`, plus your own (the Round 2 sign-up sheet's Challenges tab describes each) |
 | `robotics_link` | text | Real-world task or robot failure mode this number matters for |
 | `why_hard` | text | Why you expect top models to miss by more than 10 % |
 | `pilot` | list (optional) | Quick self-tests: `[{model, harness, effort, predicted, rel_error}]` |
