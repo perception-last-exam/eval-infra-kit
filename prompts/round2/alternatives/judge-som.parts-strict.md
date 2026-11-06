@@ -8,14 +8,28 @@ You are not grading the reconstruction and you are not estimating the real value
 
 `som.png`, in this folder, is a set-of-mark image for this measurement: a picture of the scene with numbered marks on the things the description refers to.
 
+## Start with `submission/manifest.json`
+
+`manifest.json` is the reconstruction model's own index of everything it built. Read it first, before you load the scene or open anything else. It tells you which objects exist, what they are called, how they nest, and where each one's geometry is.
+
+- **Top level:** `scene_file`, `units`, `up_axis` (or an `up` vector), and `video_frame_0_scene_frame`, the scene frame that shows video frame 0.
+- **`entities`:** one entry per object or part. Each gives:
+  - `id`, `name` and `description`;
+  - `parent`, the entity it is a part of, and `relations`, what it is on, in or attached to;
+  - `scene_path`, where its geometry is in the scene file;
+  - declared properties: `material`, `composition`, `density_kg_m3`, `mass_kg` and others.
+
+The manifest can list thousands of entities, so read it with code rather than opening the file:
+1. Print the top-level fields.
+2. Print one line per entity: `id`, `name`, `parent` and `description`.
+3. Find every entity the measurement above could refer to. Search names and descriptions for its words and their synonyms. Then follow `parent` to the parts nested under each match, and `relations` to what sits on or in it.
+4. Note each candidate's `id` and `scene_path`. These are what you bind and measure in the steps below.
+
+Use the manifest to decide what is what, and for declared values: mass, density, material, composition and temperature. Never report its geometric numbers (`bbox_m`, `landmarks`, `joints`, `volume_m3`, lengths, radii). Measure those from the geometry.
+
 ## What is in submission/
 
-- **`manifest.json`** indexes every object and part. For each entity it gives:
-  - `id`, `name`, `description`, `parent` and `relations`;
-  - `scene_path`, where its geometry is in the scene file;
-  - material, density, mass and other declared properties.
-
-  It also gives the up direction, the units, and how scene frames map to video frames.
+- **`manifest.json`:** the index described above. Start there.
 - **The scene file** named by `manifest.scene_file`: a Blender `.blend`, an OpenUSD stage or a glTF `.glb`.
 - **`camera.json`:** intrinsics `K` and `cam_to_world` for every video frame.
   - It uses the OpenCV convention: +z forward, +x right, +y down.
@@ -27,18 +41,20 @@ An entity's geometry is its scene object (Blender object, USD prim or glTF node)
 
 ## How to work
 
-1. **Load.** Load the scene with code: Blender with `blender --background --python`, OpenUSD with `pxr`, glTF with `trimesh`. If it cannot be loaded, or the manifest does not resolve to geometry, report `invalid`.
-2. **Pick the frame.**
+1. **Read the manifest** as described above, and list the candidate entities.
+2. **Load.** Load the scene with code: Blender with `blender --background --python`, OpenUSD with `pxr`, glTF with `trimesh`. If it cannot be loaded, or the manifest does not resolve to geometry, report `invalid`.
+3. **Pick the frame.**
    - If the description names a frame, use it. Frames count from 0 in the video, and the manifest says which scene frame shows video frame 0.
    - If it names a moment ("at the end", "after the pour"), find that moment in the reconstruction's own timeline and record which frame you used.
    - Otherwise use frame 0, or the static state.
-3. **Bind.** Decide which entities and which surface points the words refer to.
-   - Use the manifest's names, descriptions and relations, and the geometry itself. When text is not enough, render the scene from a few views with each entity in its own color, and look.
+4. **Bind.** Decide which entities and which surface points the words refer to.
+   - Start from the candidates you found in the manifest. Choose among them by their names, descriptions, parents and relations, then confirm with the geometry. When text is not enough, render the scene from a few views with each candidate in its own color, and look.
+   - If nothing in the manifest matches, look through the scene file for an object the manifest did not index before you report `missing`.
    - To match the marks in `som.png` to entities, render the reconstruction from a similar viewpoint and compare.
    - "Above", "height", "vertical", "horizontal" and "lying flat" use the manifest's up direction: `up_axis`, or the `up` vector.
    - Directions tied to an object come from that object's geometry: "perpendicular to the desk", "along the cable", "the long side".
-4. **Compute.** Write `measure.py`. It loads the submission, computes the value from the bound geometry and prints it in the unit the description asks for. If the description names no unit, use meters, kilograms, milliliters, degrees or pixels, and say which. Run it. The value you report must be exactly what it prints.
-5. **Report.** Write `result.json` (format below).
+5. **Compute.** Write `measure.py` in this folder, the one that holds `submission/`. It loads the submission, computes the value from the bound geometry and prints it in the unit the description asks for. If the description names no unit, use meters, kilograms, milliliters, degrees or pixels, and say which. Run it. The value you report must be exactly what it prints.
+6. **Report.** Write `result.json` in this folder, next to `submission/` (format below).
 
 ## How common measurements are computed
 
@@ -72,8 +88,9 @@ An entity's geometry is its scene object (Blender object, USD prim or glTF node)
 - **The marked image.** Use `som.png` only to tell which things are meant. Never measure anything on it.
 - **Geometry first.**
   - Distances, sizes, gaps, heights, angles, lengths, volumes and pixel measures come from the geometry and the camera.
-  - Never take them from numbers written in `manifest.json` (`bbox_m`, `landmarks`, `joints`), in `NOTES.md` or in the code.
+  - Never take them from numbers written in `manifest.json` (`bbox_m`, `landmarks`, `joints`, `volume_m3`, lengths, radii), in `NOTES.md` or in the code.
   - Declared values count only for what geometry cannot show: mass, density, material, composition and temperature.
+- **Your files.** Write everything (`measure.py`, `result.json`, renders, scratch files) in this folder. Never write inside `submission/` or outside this folder.
 - **Do not repair the reconstruction.** Measure it as it is: do not move, rescale or remodel anything.
 - **Missing things.**
   - If the object the measurement refers to is not in the reconstruction, report `missing` with value null.
@@ -83,7 +100,7 @@ An entity's geometry is its scene object (Blender object, USD prim or glTF node)
 
 ## Output
 
-`result.json`:
+`result.json`, in this folder:
 ```json
 {
   "value": 41.7,
@@ -98,6 +115,7 @@ An entity's geometry is its scene object (Blender object, USD prim or glTF node)
 ```
 
 - **`unit`:** the unit of `value`.
+- **`entities`:** the manifest `id` of every entity you measured or summed.
 - **`status`:** one of
   - `ok`;
   - `approximate`: a volume or mass needed a fallback (an unclosed mesh, a missing `mass_kg`);
